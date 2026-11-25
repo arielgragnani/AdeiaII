@@ -84,7 +84,7 @@ function panel(o){const p=$("pin");const tipo=o.k=="n"?"PONTO NOVO":"AJUSTAR POS
  (o.ph?`<img id="photo" src="thumbs/t${String(o.ph).padStart(2,"0")}.jpg">`:`<div class="nophoto">Sem foto</div>`)+
  `<div class="ed" style="margin:6px 0"><button id="ba" class="${o.k=="a"?"on":""}">Ajustar (já existe)</button> <button id="bn" class="${o.k=="n"?"on":""}">Novo (falta)</button> `+(o.id[0]=="u"||!o.ph?`<button id="bd" style="color:#b00">Excluir</button>`:"")+`</div>`+
  `<textarea id="nt" rows="2" placeholder="Observação (ex.: subir 20 cm, ao lado da janela)"></textarea><a id="wa" target="_blank" rel="noopener">Enviar observação por WhatsApp</a>`;
- $("nt").value=nt[o.id]||"";const upd=()=>{const t=`Projeto elétrico — Ponto ${o.n}${o.ph?" (foto "+o.ph+")":""}, ${o.k=="n"?"ponto NOVO":"AJUSTAR posição"}`+(nt[o.id]?`\nObservação: ${nt[o.id]}`:"")+`\n(anexe a foto)`;$("wa").href="https://wa.me/?text="+encodeURIComponent(t)};upd();
+ $("nt").value=nt[o.id]||"";const upd=()=>{const t=`Projeto elétrico — Ponto ${o.n}${o.ph?" (foto "+o.ph+")":""}, ${o.k=="n"?"ponto NOVO":"AJUSTAR posição"}`+(nt[o.id]?`\nObservação: ${nt[o.id]}`:"")+`\n(anexe a foto)`;$("wa").href="https://wa.me/447525005668?text="+encodeURIComponent(t)};upd();
  $("nt").oninput=e=>{nt[o.id]=e.target.value;wr(KEY+"-n",nt);upd()};
  $("cl").onclick=close;
  if($("photo"))$("photo").onclick=function(){$("big").firstChild.src=this.src;$("big").style.display="block"};
