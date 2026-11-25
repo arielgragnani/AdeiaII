@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planta de eletrodutos do palco</title>
+<style>
+:root{--bg:#fff;--fg:#1f1e1d;--mut:#6b6a66;--line:#d9d7cf;--btn:#f4f2ec}
+@media (prefers-color-scheme:dark){:root{--bg:#1f1e1d;--fg:#f1efe8;--mut:#a8a69d;--line:#3d3c39;--btn:#2b2a28}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:12px}
+h1{font-size:18px;font-weight:500;margin:0 0 2px}
+p.sub{margin:0 0 10px;color:var(--mut);font-size:13px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+button,label.chip{font:inherit;font-size:13px;color:var(--fg);background:var(--btn);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+label.chip{display:inline-flex;gap:6px;align-items:center}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.scroll{overflow:auto;border:1px solid var(--line);border-radius:12px;max-height:80vh;-webkit-overflow-scrolling:touch}
+svg{display:block;width:100%;height:auto}
+.node{cursor:grab}
+.node.st{cursor:default}
+.rh{opacity:0;transition:opacity .15s}.node:hover .rh,.node.sel .rh{opacity:1}
+svg.nolbl .lbl{display:none}svg.nolet .let{display:none}
+.node text{pointer-events:none}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:13px;color:var(--mut)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.notes{margin-top:14px;font-size:14px}.notes h2{font-size:15px;font-weight:500;margin:0 0 4px}.notes ul{margin:0;padding-left:20px}.notes li{margin:3px 0}
+</style>
+<style>body{padding:0!important;overflow:hidden}h1,p.sub,.bar,textarea,.legend,.notes,#msg{display:none!important}
+.scroll{border:0!important;border-radius:0!important;max-height:none!important;height:100dvh;overflow:auto;-webkit-overflow-scrolling:touch}
+svg{width:170%!important;height:auto}.node{pointer-events:none!important}</style>
+<script>addEventListener("load",()=>{const s=document.getElementById("scroll");s.scrollLeft=(s.scrollWidth-s.clientWidth)/2;s.scrollTop=(s.scrollHeight-s.clientHeight)/2})</script>
+</head>
+<body>
+<h1>Planta de eletrodutos do palco (som e energia)</h1>
+<p class="sub">Arraste qualquer ponto para mover; as linhas acompanham. Posições aproximadas (proposta), a confirmar em obra.</p>
+<div class="bar">
+  <label class="chip"><input type="checkbox" id="Ls" checked><span class="dot" style="background:#1D9E75"></span>Sinal</label>
+  <label class="chip"><input type="checkbox" id="Lp" checked><span class="dot" style="background:#D85A30"></span>Energia</label>
+  <label class="chip"><input type="checkbox" id="Lk" checked><span class="dot" style="background:#EF9F27"></span>Caixas</label>
+  <label class="chip"><input type="checkbox" id="Ll" checked><span class="dot" style="background:#F5E6A8;border:1px solid #7a6a1e"></span>Arandelas</label>
+  <label class="chip"><input type="checkbox" id="Ld" checked><span class="dot" style="background:#378ADD"></span>Dados</label>
+  <label class="chip"><input type="checkbox" id="Tn" checked>Nomes</label>
+  <label class="chip"><input type="checkbox" id="Tl" checked>Letras</label>
+  <button id="zoom">Ampliar</button>
+  <button id="reset">Restaurar</button>
+  <button id="copy">Copiar posições</button>
+</div>
+<textarea id="out" readonly style="display:none;width:100%;height:84px;margin:0 0 10px;font:11px/1.3 ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:8px;padding:6px;background:var(--btn);color:var(--fg)"></textarea>
+<p class="sub" id="msg"></p>
+<div class="scroll" id="scroll">
+<svg id="svg" viewBox="0 0 2212 1659" role="img" aria-label="Foto do canto do palco com os pontos de eletrodutos propostos desenhados sobre ela">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M1 1L9 5L1 9z" fill="#EF9F27" stroke="#412402" stroke-width="1"/></marker>
+  </defs>
+  <image href="photo.jpg" x="0" y="0" width="2212" height="1659"/>
+  <g id="edges"></g>
+  <g id="nodes"></g>
+</svg>
+</div>
+<div class="legend">
+  <span><i class="dot" style="background:#1D9E75"></i>S = sinal (cabo XLR)</span>
+  <span><i class="dot" style="background:#D85A30"></i>E = energia</span>
+  <span><i class="dot" style="background:#EF9F27"></i>Caixa acústica ativa (ponto pequeno = direção)</span>
+  <span><i class="dot" style="background:#EF9F27;border-radius:2px"></i>Retorno de palco (caixa de chão ativa), seta = direção do som</span>
+  <span><i class="dot" style="background:#F5E6A8;border:1px solid #7a6a1e"></i>A = arandela (existente)</span>
+  <span><i class="dot" style="background:#FAECE7;border:2px solid #D85A30"></i>T = tomada baixa</span>
+  <span><i class="dot" style="background:#E6F1FB;border:2px solid #378ADD"></i>D = ponto de dados</span>
+  <span><i class="dot" style="background:#1D9E75"></i>Linha verde pontilhada = sinal XLR da mesa que atravessa a parede até a interface de áudio no estúdio</span>
+  <span>Caixa dividida S|E = sinal e energia na mesma caixa (um eletroduto de cada).</span>
+</div>
+<div class="notes">
+  <h2>Notas para o instalador</h2>
+  <ul>
+    <li>O palco será aterrado: os eletrodutos sob o palco ficam enterrados, sem acesso depois. Colocar arame-guia em todos e deixar um eletroduto reserva em cada trajeto, mais um para cabo de rede (CAT6).</li>
+    <li>Sinal (XLR) e energia em eletrodutos separados, com afastamento de cerca de 30 cm; quando se cruzarem, cruzar a 90°.</li>
+    <li>Sugestão: tronco de sinal sob o palco em 40 mm (todos os cabos XLR passam por ele), tronco de energia em 32 mm e ramais em 25 mm; curvas largas, no máximo duas curvas de 90° entre caixas.</li>
+    <li>Três pontos no piso do palco (RT1, INST, RT2), cada um com uma caixa de sinal e uma de energia lado a lado. Caixas niveladas no piso acabado: definir antes a altura final do palco.</li>
+    <li>Caixas acústicas ativas nas pontas do palco, levemente anguladas para fora; cada uma precisa de sinal e energia na caixa alta (marcação do topo).</li>
+    <li>Retornos (RT1 e RT2): cada caixa de chão liga por um cabo XLR curto na caixa S e por um cabo de força na caixa E do mesmo ponto.</li>
+    <li>Sinal da mesa para o estúdio: eletroduto (sugestão: 32 mm) saindo do mesmo ponto de sinal da mesa, até uma caixa dentro do estúdio, atravessando a parede ao lado da porta. Cabos XLR das saídas da mesa para a interface de áudio (placa de som) do computador de gravação; cada ponta com espelho de XLR (2 a 4 conectores). Deixar arame-guia e vedar a passagem.</li>
+    <li>Mesa de som no ponto marcado à esquerda da porta: ponto de sinal (mesa) e de energia abaixo.</li>
+    <li>Alimentação de energia a partir do QDG1 e dados a partir do DADOS, conforme a planta elétrica. Circuito próprio para o áudio, separado da iluminação.</li>
+    <li>A sala terá isolamento acústico: vedar bem as passagens dos eletrodutos nas paredes e concentrar as perfurações.</li>
+  </ul>
+</div>
+<script>
+var NS="http://www.w3.org/2000/svg";
+var COL={s:"#1D9E75",p:"#D85A30",k:"#EF9F27",d:"#378ADD"};
+var N=[
+ {id:"SLbox",t:"c",x:765,y:490,l:"Pto CX ESQ",la:"e",L:"k"},
+ {id:"SL",t:"k",x:569,y:634,l:"CX ESQ",L:"k"},
+ {id:"SLaim",t:"a",x:705,y:569,L:"k"},
+ {id:"jS2",t:"j",c:"s",x:764,y:565,L:"s"},
+ {id:"jP2",t:"j",c:"p",x:805,y:495,L:"p"},
+ {id:"Lt1",t:"l",x:770,y:800,l:"arandela",st:1,L:"l"},
+ {id:"Dsig",t:"s",x:793,y:986,l:"mesa",L:"s"},
+ {id:"jS1",t:"j",c:"s",x:756,y:949,L:"s"},
+ {id:"Dpow",t:"p",x:768,y:1115,L:"p"},
+ {id:"jP1",t:"j",c:"p",x:805,y:1115,L:"p"},
+ {id:"Es",t:"j",c:"s",x:745,y:1140,L:"s"},
+ {id:"Ep",t:"j",c:"p",x:805,y:1150,L:"p"},
+ {id:"R1s",t:"s",x:1045,y:1408,l:"RT1",L:"s"},
+ {id:"R1p",t:"p",x:1014,y:1328,L:"p"},
+ {id:"INs",t:"s",x:1295,y:1259,l:"INST",L:"s"},
+ {id:"INp",t:"p",x:1223,y:1235,L:"p"},
+ {id:"R2s",t:"s",x:1511,y:1177,l:"RT2",L:"s"},
+ {id:"R2p",t:"p",x:1438,y:1146,L:"p"},
+ {id:"Js",t:"j",c:"s",x:1825,y:1163,L:"s"},
+ {id:"Jp",t:"j",c:"p",x:1790,y:1150,L:"p"},
+ {id:"jS3",t:"j",c:"s",x:1815,y:538,L:"s"},
+ {id:"jP3",t:"j",c:"p",x:1782,y:573,L:"p"},
+ {id:"SRbox",t:"c",x:1800,y:500,l:"Pto CX DIR",la:"e",L:"k"},
+ {id:"SR",t:"k",x:1956,y:529,l:"CX DIR",L:"k"},
+ {id:"SRaim",t:"a",x:1813,y:432,L:"k"},
+ {id:"Lt2",t:"l",x:1800,y:815,l:"arandela",st:1,L:"l"},
+ {id:"Lt5",t:"l",x:1078,y:830,l:"arandela",st:1,L:"l"},
+ {id:"Lt6",t:"l",x:1390,y:833,l:"arandela",st:1,L:"l"},
+ {id:"B1",t:"o",x:1072,y:1064,L:"p"},
+ {id:"B2",t:"d",x:1136,y:1033,l:"dados",la:"u",L:"d"},
+ {id:"B3",t:"o",x:1182,y:1026,L:"p"},
+ {id:"W2",t:"o",x:1773,y:1051,L:"p"},
+ {id:"W3",t:"o",x:1448,y:1030,L:"p"},
+ {id:"RET1",t:"w",x:1224,y:1584,l:"retorno 1",L:"k",rot:-20},
+ {id:"RET2",t:"w",x:1916,y:1268,l:"retorno 2",L:"k",rot:-30},
+ {id:"STD",t:"s",x:963,y:898,l:"interface",L:"s"},
+ {id:"WL",t:"t",x:0,y:0,l:"pela parede",la:"u",st:1,L:"s",mid:["Dsig","STD"]}
+];
+var E=[
+ {p:["SLbox","jS2","jS1","Es","R1s","INs","R2s","Js","jS3","SRbox"],c:"s",L:"s"},
+ {p:["jS1","Dsig"],c:"s",L:"s"},
+ {p:["SLbox","jP2","jP1","Ep","R1p","INp","R2p","Jp","jP3","SRbox"],c:"p",L:"p"},
+ {p:["jP1","Dpow"],c:"p",L:"p"},
+ {p:["SLbox","SL"],c:"k",w:5,L:"k"},{p:["SRbox","SR"],c:"k",w:5,L:"k"},
+ {p:["SL","SLaim"],c:"k",a:1,w:7,L:"k"},{p:["SR","SRaim"],c:"k",a:1,w:7,L:"k"},
+ {p:["R1s","RET1"],c:"s",w:5,L:"s"},{p:["R1p","RET1"],c:"p",w:5,L:"p"},
+ {p:["R2s","RET2"],c:"s",w:5,L:"s"},{p:["R2p","RET2"],c:"p",w:5,L:"p"},
+ {p:["Dsig","STD"],c:"s",w:12,dot:1,L:"s"}
+];
+var KEY="stage-conduit-pos-v3",byId={},pos={};
+try{pos=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){pos={}}
+N.forEach(function(n){byId[n.id]=n;n.x0=n.x;n.y0=n.y;n.rot0=n.rot||0;if(pos[n.id]&&!n.st){n.x=pos[n.id][0];n.y=pos[n.id][1];if(pos[n.id].length>2)n.rot=pos[n.id][2]}});
+function placeWedge(n){var a=byId[n.anchor[0]],b=byId[n.anchor[1]];n.x=(a.x+b.x)/2;n.y=(a.y+b.y)/2+75}
+N.forEach(function(n){if(n.anchor){placeWedge(n);n.x0=n.x;n.y0=n.y;if(pos[n.id]){n.x=pos[n.id][0];n.y=pos[n.id][1];n.rot=pos[n.id][2]||0}}});
+var eg=document.getElementById("edges"),ng=document.getElementById("nodes"),svg=document.getElementById("svg");
+var eEls=E.map(function(e){var p=document.createElementNS(NS,"polyline");p.setAttribute("fill","none");p.setAttribute("stroke",COL[e.c]);p.setAttribute("stroke-width",e.w||11);p.setAttribute("stroke-linejoin","round");p.setAttribute("stroke-linecap","round");p.setAttribute("opacity",".95");if(e.d)p.setAttribute("stroke-dasharray","30 20");if(e.dot)p.setAttribute("stroke-dasharray","1 26");if(e.a)p.setAttribute("marker-end","url(#ah)");eg.appendChild(p);return p});
+function mk(tag,at,par){var el=document.createElementNS(NS,tag);for(var k in at)el.setAttribute(k,at[k]);(par||ng).appendChild(el);return el}
+var nEls={};
+N.forEach(function(n){
+ var g=mk("g",{"class":"node"+(n.st?" st":"")});if(!n.st)g.style.touchAction="none";
+ if(!n.st)mk("circle",{r:(n.t==="o"||n.t==="d")?24:62,fill:"transparent"},g);
+ if(n.t==="s"||n.t==="p"){
+  mk("rect",{x:-30,y:-30,width:60,height:60,rx:9,fill:COL[n.t],stroke:"#fff","stroke-width":5},g);
+  var t=mk("text",{"text-anchor":"middle","dominant-baseline":"central","font-size":38,"font-weight":600,fill:"#fff"},g);t.textContent=(n.t==="s"?"S":"E");
+ }else if(n.t==="c"){
+  mk("rect",{x:-44,y:-30,width:44,height:60,rx:9,fill:COL.s,stroke:"#fff","stroke-width":5},g);
+  mk("rect",{x:0,y:-30,width:44,height:60,rx:9,fill:COL.p,stroke:"#fff","stroke-width":5},g);
+  var t1=mk("text",{x:-22,"text-anchor":"middle","dominant-baseline":"central","font-size":36,"font-weight":600,fill:"#fff"},g);t1.textContent="S";
+  var t2=mk("text",{x:22,"text-anchor":"middle","dominant-baseline":"central","font-size":36,"font-weight":600,fill:"#fff"},g);t2.textContent="E";
+ }else if(n.t==="k"){
+  mk("rect",{x:-34,y:-46,width:68,height:92,rx:10,fill:COL.k,stroke:"#412402","stroke-width":5},g);
+  mk("circle",{cx:0,cy:12,r:20,fill:"none",stroke:"#412402","stroke-width":5},g);
+  mk("circle",{cx:0,cy:-22,r:7,fill:"#412402"},g);
+ }else if(n.t==="w"){
+  var gi=mk("g",{"class":"rot"},g);n.rotEl=gi;
+  mk("polygon",{points:"-46,-26 46,-26 28,28 -28,28",fill:COL.k,stroke:"#412402","stroke-width":5,"stroke-linejoin":"round"},gi);
+  mk("line",{x1:0,y1:14,x2:0,y2:-52,stroke:"#412402","stroke-width":7,"marker-end":"url(#ah)"},gi);
+  var rh=mk("g",{"class":"rh"},gi);rh.style.touchAction="none";
+  mk("line",{x1:0,y1:-60,x2:0,y2:-76,stroke:"#412402","stroke-width":5},rh);
+  mk("circle",{cx:0,cy:-100,r:26,fill:"#fff",stroke:"#412402","stroke-width":5},rh);
+  var rt=mk("text",{x:0,y:-99,"text-anchor":"middle","dominant-baseline":"central","font-size":32,fill:"#412402"},rh);rt.textContent="\u21BB";
+  rh.style.cursor="grab";
+  rh.addEventListener("pointerdown",function(ev){
+   ev.stopPropagation();ev.preventDefault();rh.setPointerCapture(ev.pointerId);g.classList.add("sel");
+   function mv(e){var m=svg.getScreenCTM().inverse(),p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;p=p.matrixTransform(m);n.rot=Math.round(Math.atan2(p.x-n.x,-(p.y-n.y))*180/Math.PI);draw()}
+   function up(){rh.removeEventListener("pointermove",mv);rh.removeEventListener("pointerup",up);rh.removeEventListener("pointercancel",up);save()}
+   rh.addEventListener("pointermove",mv);rh.addEventListener("pointerup",up);rh.addEventListener("pointercancel",up);
+  });
+ }else if(n.t==="t"){
+ }else if(n.t==="a"){
+  mk("circle",{r:20,fill:COL.k,stroke:"#412402","stroke-width":5},g);
+ }else if(n.t==="l"){
+  mk("circle",{r:28,fill:"#F5E6A8",stroke:"#7a6a1e","stroke-width":5},g);
+  var tl=mk("text",{"text-anchor":"middle","dominant-baseline":"central","font-size":34,"font-weight":600,fill:"#5a4d0f"},g);tl.textContent="A";
+ }else if(n.t==="o"){
+  mk("rect",{x:-15,y:-15,width:30,height:30,rx:5,fill:"#FAECE7",stroke:COL.p,"stroke-width":6},g);
+  var to=mk("text",{"text-anchor":"middle","dominant-baseline":"central","font-size":20,"font-weight":600,fill:"#712B13"},g);to.textContent="T";
+ }else if(n.t==="d"){
+  mk("rect",{x:-15,y:-15,width:30,height:30,rx:5,fill:"#E6F1FB",stroke:"#378ADD","stroke-width":6},g);
+  var td=mk("text",{"text-anchor":"middle","dominant-baseline":"central","font-size":20,"font-weight":600,fill:"#0C447C"},g);td.textContent="D";
+ }else if(n.t==="l2"){
+  mk("rect",{x:-22,y:-22,width:44,height:44,rx:8,fill:"#F5E6A8",stroke:"#7a6a1e","stroke-width":5},g);
+ }else{
+  mk("circle",{r:16,fill:COL[n.c],stroke:"#fff","stroke-width":4},g);
+ }
+ if(n.l){
+  var kk=(n.t==="k"),end=(n.la==="e");
+  var up=(n.la==="u"),dn=(n.la==="b");var lx=(kk||up||dn)?0:(end?-56:40),ty=kk?-62:(up?-40:(dn?44:0)),anc=(kk||up||dn)?"middle":(end?"end":"start");
+  var tx=mk("text",{x:lx,y:ty,"text-anchor":anc,"dominant-baseline":"central","font-size":28,"font-weight":600,fill:"#fff",stroke:"#000","stroke-width":6,"paint-order":"stroke","stroke-linejoin":"round"},g);tx.textContent=n.l;
+ }
+ nEls[n.id]=g;
+ Array.prototype.forEach.call(g.querySelectorAll("text"),function(t){if(t.closest(".rh"))return;t.classList.add(t.getAttribute("font-size")==="28"?"lbl":"let")});
+ if(n.st)return;
+ g.addEventListener("pointerdown",function(ev){
+  ev.preventDefault();Array.prototype.forEach.call(svg.querySelectorAll(".node.sel"),function(x){x.classList.remove("sel")});g.classList.add("sel");g.setPointerCapture(ev.pointerId);g.style.cursor="grabbing";
+  function mv(e){var m=svg.getScreenCTM().inverse(),p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;p=p.matrixTransform(m);n.x=Math.max(0,Math.min(2212,p.x));n.y=Math.max(0,Math.min(1659,p.y));draw()}
+  function up(e){g.removeEventListener("pointermove",mv);g.removeEventListener("pointerup",up);g.removeEventListener("pointercancel",up);g.style.cursor="";save()}
+  g.addEventListener("pointermove",mv);g.addEventListener("pointerup",up);g.addEventListener("pointercancel",up);
+ });
+});
+function draw(){
+ N.forEach(function(n){if(n.mid){n.x=(byId[n.mid[0]].x+byId[n.mid[1]].x)/2;n.y=(byId[n.mid[0]].y+byId[n.mid[1]].y)/2}nEls[n.id].setAttribute("transform","translate("+n.x+","+n.y+")");if(n.rotEl)n.rotEl.setAttribute("transform","rotate("+(n.rot||0)+")")});
+ E.forEach(function(e,i){eEls[i].setAttribute("points",e.p.map(function(id){return byId[id].x+","+byId[id].y}).join(" "))});
+}
+function save(){var o={};N.forEach(function(n){if(n.x!==n.x0||n.y!==n.y0||(n.rot||0)!==n.rot0)o[n.id]=[Math.round(n.x),Math.round(n.y),n.rot||0]});try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}
+function layers(){
+ var on={s:Ls.checked,p:Lp.checked,k:Lk.checked,l:Ll.checked,d:Ld.checked};
+ N.forEach(function(n){nEls[n.id].style.display=on[n.L]?"":"none"});
+ E.forEach(function(e,i){eEls[i].style.display=on[e.L]?"":"none"});
+}
+["Ls","Lp","Lk","Ll","Ld"].forEach(function(i){document.getElementById(i).addEventListener("change",layers)});
+document.getElementById("reset").addEventListener("click",function(){N.forEach(function(n){n.x=n.x0;n.y=n.y0;n.rot=n.rot0});N.forEach(function(n){if(n.anchor)placeWedge(n)});try{localStorage.removeItem(KEY)}catch(e){}draw()});
+var zoomed=false,zb=document.getElementById("zoom");
+zb.addEventListener("click",function(){zoomed=!zoomed;svg.style.width=zoomed?"260%":"100%";zb.textContent=zoomed?"Reduzir":"Ampliar"});
+document.getElementById("Tn").addEventListener("change",function(){svg.classList.toggle("nolbl",!this.checked)});
+document.getElementById("Tl").addEventListener("change",function(){svg.classList.toggle("nolet",!this.checked)});
+svg.addEventListener("pointerdown",function(e){if(!e.target.closest(".node"))Array.prototype.forEach.call(svg.querySelectorAll(".node.sel"),function(x){x.classList.remove("sel")})});
+document.getElementById("copy").addEventListener("click",function(){
+ var o={};N.forEach(function(n){if(n.st||n.mid)return;o[n.id]=[Math.round(n.x),Math.round(n.y),n.rot||0]});
+ var t=JSON.stringify(o),ta=document.getElementById("out");ta.style.display="block";ta.value=t;ta.focus();ta.select();
+ try{var pr=navigator.clipboard&&navigator.clipboard.writeText(t);if(pr&&pr.catch)pr.catch(function(){})}catch(e){}
+ document.getElementById("msg").textContent="Posições prontas. Se não foram copiadas, selecione o texto acima e copie.";
+});
+draw();layers();
+</script>
+</body>
+</html>

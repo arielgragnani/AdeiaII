@@ -12,12 +12,11 @@ button{font:inherit;font-size:13px;padding:6px 10px;border:1px solid #bbb;backgr
 button.on{background:#222;color:#fff;border-color:#222}
 #chips{display:flex;gap:6px;padding:6px 8px;overflow-x:auto;background:#fff;border-bottom:1px solid #eee;-webkit-overflow-scrolling:touch;flex:none}
 .chip{flex:none;min-width:38px;height:38px;border-radius:19px;border:3px solid #F59E0B;background:#fff;font-weight:700;font-size:15px;padding:0}
-.chip.n{border-color:#1D9E75}.chip.sel{background:#F59E0B;color:#111}.chip.n.sel{background:#1D9E75;color:#fff}.chip.un{opacity:.35;border-style:dashed}
+.chip.n{border-color:#1D9E75}.chip.sel{background:#F59E0B;color:#111}.chip.n.sel{background:#1D9E75;color:#fff}.chip.un{opacity:.35;border-style:dashed}.chip.pl{border-color:#378ADD}.chip.pl.sel{background:#378ADD;color:#fff}
 #legend{display:flex;gap:14px;align-items:center;padding:4px 10px;font-size:12px;background:#fff;border-bottom:1px solid #ddd;flex:none;flex-wrap:wrap}
 .dot{display:inline-block;width:14px;height:14px;border-radius:7px;border:3px solid;vertical-align:-3px;margin-right:4px}
 #tools{display:none;padding:6px 8px;background:#fffbe8;border-bottom:1px solid #e8e0b0;flex:none;flex-wrap:wrap;gap:6px}
-body.tools #tools{display:flex}
-body.palco #chips,body.palco #legend,body.palco #stage,body.palco #panel,body.palco #bAdd{display:none}body.palco #pal{display:block!important}
+body.palco #pal{display:block!important}body.palco.sel #panel{height:24dvh}
 #stage{position:relative;flex:1;min-height:120px;background:#fff;touch-action:none;overflow:hidden}
 #stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
 #zb{position:absolute;right:8px;bottom:8px;display:flex;flex-direction:column;gap:6px}
@@ -36,13 +35,8 @@ textarea{width:100%;font:14px system-ui;margin-top:6px;user-select:text;-webkit-
 .m{cursor:pointer}.m text{font-weight:700;pointer-events:none}
 </style></head><body>
 <div id="app">
-<div id="tabs"><button id="tV" class="on">Planta</button><button id="tE">Palco</button><button id="bAdd" style="flex:none;width:46px;font-size:22px;padding:4px">＋</button><button id="bMore" style="flex:none;width:46px;font-size:20px;padding:4px">⋯</button></div>
 <div id="chips"></div>
-<div id="legend"><span><span class="dot" style="border-color:#F59E0B"></span>Ajustar posição</span><span><span class="dot" style="border-color:#1D9E75"></span>Ponto novo</span><label style="margin-left:auto"><input type="checkbox" id="cEl" checked> Elétrica</label></div>
-<div id="tools"><button id="bRen">Renumerar esq→dir</button><button id="bCp">Copiar posições</button><button id="bRs">Restaurar</button><textarea id="out" rows="8"></textarea><div id="msg" style="font-size:13px;width:100%"></div></div>
-<iframe id="pal" src="palco/index.html" style="display:none;flex:1;border:0;width:100%;background:#fff"></iframe>
-<div id="stage"><svg id="s"><g id="vp"><image id="el" href="elec.jpg" width="3200" height="1670" opacity=".3"/><image href="walls.png" width="3200" height="1670"/><g id="mk"></g></g></svg>
-<div id="zb"><button id="zi">+</button><button id="zo">−</button><button id="zf" style="font-size:13px">Tudo</button></div></div>
+<div id="stage"><iframe id="pal" src="palco/view.html" style="display:none;position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff;z-index:2"></iframe><svg id="s"><g id="vp"><image id="el" href="elec.jpg" width="3200" height="1670" opacity=".3"/><image href="walls.png" width="3200" height="1670"/><g id="mk"></g></g></svg></div>
 <div id="panel"><div class="in" id="pin"></div></div>
 </div>
 <div id="big"><img></div>
@@ -77,10 +71,14 @@ function draw(o){if(o.g)o.g.remove();if(o.un&&o.id!=sel){o.g=null;return}
  const t=el("text",{y:6,"font-size":o.n>9?15:17,"text-anchor":"middle",fill:on&&o.k=="n"?"#fff":"#111"},g);t.textContent=o.n;
  g.dataset.id=o.id}
 function drawAll(){$("mk").innerHTML="";M.forEach(draw);apply();chips()}
-function chips(){const c=$("chips");c.innerHTML="";[...M].sort((a,b)=>a.n-b.n).forEach(o=>{const b=document.createElement("button");b.className="chip "+o.k+(o.id==sel?" sel":"")+(o.un?" un":"");b.textContent=o.n;b.onclick=()=>pick(o.id,true);c.appendChild(b);if(o.id==sel)setTimeout(()=>b.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"}),0)})}
-function pick(id,fly){sel=id;const o=M.find(a=>a.id==id);if(o.un){const r=stage.getBoundingClientRect();o.x=Math.round((r.width/2-V.tx)/V.k);o.y=Math.round((r.height/2-V.ty)/V.k);o.un=0;moveId=o.id;fly=false;save()}else if(moveId!=id)moveId=null;document.body.classList.add("sel");drawAll();panel(o);
+function chips(){const c=$("chips");c.innerHTML="";[...M].sort((a,b)=>a.n-b.n).forEach(o=>{const b=document.createElement("button");b.className="chip "+o.k+(o.id==sel?" sel":"")+(o.un?" un":"");b.textContent=o.n;b.onclick=()=>pick(o.id,true);c.appendChild(b);if(o.id==sel)setTimeout(()=>b.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"}),0)});
+ const pb=document.createElement("button");pb.className="chip pl"+(sel=="palco"?" sel":"");pb.textContent="Palco";pb.style.padding="0 14px";pb.onclick=()=>pick("palco");c.appendChild(pb);if(sel=="palco")setTimeout(()=>pb.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"}),0);
+ const ab=document.createElement("button");ab.className="chip";ab.textContent="＋";ab.style.cssText="border-color:#888;font-size:20px";ab.onclick=addPoint;c.appendChild(ab)}
+function pick(id,fly){if(id=="palco"){sel="palco";moveId=null;document.body.classList.add("sel","palco");drawAll();palPanel();return}document.body.classList.remove("palco");sel=id;const o=M.find(a=>a.id==id);if(o.un){const r=stage.getBoundingClientRect();o.x=Math.round((r.width/2-V.tx)/V.k);o.y=Math.round((r.height/2-V.ty)/V.k);o.un=0;moveId=o.id;fly=false;save()}else if(moveId!=id)moveId=null;document.body.classList.add("sel");drawAll();panel(o);
  setTimeout(()=>{if(fly){const r=stage.getBoundingClientRect();flyTo(o.x,o.y,Math.max(r.width/900,fitK()*2.5))}},60)}
-function close(){sel=null;document.body.classList.remove("sel");drawAll()}
+function close(){sel=null;moveId=null;document.body.classList.remove("sel","palco");drawAll();setTimeout(()=>{fit()},50)}
+function palPanel(){const p=$("pin");p.innerHTML=`<h3>Palco <button id="cl" style="float:right;padding:2px 10px">✕</button></h3><textarea id="nt" rows="2" placeholder="Observação sobre o palco"></textarea><a id="wa" target="_blank" rel="noopener">Enviar observação por WhatsApp</a>`;
+ $("nt").value=nt.palco||"";const upd=()=>{$("wa").href="https://wa.me/447525005686?text="+encodeURIComponent("Projeto elétrico — PALCO"+(nt.palco?"\nObservação: "+nt.palco:"")+"\n(anexe a foto)")};upd();$("nt").oninput=e=>{nt.palco=e.target.value;wr(KEY+"-n",nt);upd()};$("cl").onclick=close}
 function panel(o){const p=$("pin");const tipo=o.k=="n"?"PONTO NOVO":"AJUSTAR POSIÇÃO";
  p.innerHTML=`<h3>Ponto ${o.n} · <span style="color:${o.k=="n"?"#1D9E75":"#B7770A"}">${tipo}</span> <button id="cl" style="float:right;padding:2px 10px">✕</button></h3>`+
  (o.ph?`<img id="photo" src="thumbs/t${String(o.ph).padStart(2,"0")}.jpg">`:`<div class="nophoto">Sem foto</div>`)+
@@ -112,17 +110,7 @@ function up(e){const p=P.get(e.pointerId);P.delete(e.pointerId);if(!gs)return;
  if(P.size==0)gs=null;else if(P.size==1){const q=[...P.values()][0];gs={tx:V.tx,ty:V.ty,x:q.x,y:q.y,drag:null,moved:99}}}
 stage.addEventListener("pointerup",up);stage.addEventListener("pointercancel",up);
 stage.addEventListener("wheel",e=>{e.preventDefault();const c=sp(e);zoomAt(c.x,c.y,V.k*(e.deltaY<0?1.2:1/1.2))},{passive:false});
-$("zi").onclick=()=>{const r=stage.getBoundingClientRect();zoomAt(r.width/2,r.height/2,V.k*1.5)};
-$("zo").onclick=()=>{const r=stage.getBoundingClientRect();zoomAt(r.width/2,r.height/2,V.k/1.5)};
-$("zf").onclick=()=>{fit()};
-$("cEl").onchange=e=>$("el").style.display=e.target.checked?"":"none";
-function setMode(m){mode=m;document.body.classList.toggle("palco",m=="e");$("tV").classList.toggle("on",m=="v");$("tE").classList.toggle("on",m=="e");if(m=="v")setTimeout(()=>{clamp();apply()},50)}
-$("tV").onclick=()=>setMode("v");$("tE").onclick=()=>setMode("e");$("bMore").onclick=()=>document.body.classList.toggle("tools");
-$("bAdd").onclick=()=>{const r=stage.getBoundingClientRect();const n=Math.max(0,...M.map(o=>o.n))+1;if(mode!="v")return;const o={id:"u"+Date.now(),ph:0,k:"n",n,x:Math.round((r.width/2-V.tx)/V.k),y:Math.round((r.height/2-V.ty)/V.k)};M.push(o);moveId=o.id;save();pick(o.id,false)};
-$("bRen").onclick=()=>{[...M].filter(o=>!o.un).sort((a,b)=>a.x-b.x).forEach((o,i)=>o.n=i+1);let n=M.filter(o=>!o.un).length;M.filter(o=>o.un).forEach(o=>o.n=++n);save();drawAll();if(sel)panel(M.find(o=>o.id==sel))};
-$("bCp").onclick=()=>{const out=[...M].sort((a,b)=>a.n-b.n).map(o=>`Ponto ${o.n}${o.ph?" (foto "+o.ph+")":" (extra)"} ${o.k=="n"?"NOVO":"AJUSTAR"}: [${o.x},${o.y}]${o.un?" (não posicionado)":""}${nt[o.id]?" — "+nt[o.id].replace(/\n/g," "):""}`).join("\n");
- const t=$("out");t.style.display="block";t.value=out;t.focus();t.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}$("msg").textContent=ok?"Copiado! Cole na conversa.":"Selecione o texto, copie e cole na conversa."};
-$("bRs").onclick=()=>{try{localStorage.removeItem(KEY);localStorage.removeItem(KEY+"-n");localStorage.removeItem(KEY+"-add")}catch(e){}location.reload()};
+function addPoint(){const r=stage.getBoundingClientRect();const n=Math.max(0,...M.map(o=>o.n))+1;const o={id:"u"+Date.now(),ph:0,k:"n",n,x:Math.round((r.width/2-V.tx)/V.k),y:Math.round((r.height/2-V.ty)/V.k)};M.push(o);moveId=o.id;save();pick(o.id,false)}
 addEventListener("resize",()=>{clamp();apply()});
 drawAll();setTimeout(fit,50);
 </script></body></html>
