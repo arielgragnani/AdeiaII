@@ -16,7 +16,8 @@ button.on{background:#222;color:#fff;border-color:#222}
 #legend{display:flex;gap:14px;align-items:center;padding:4px 10px;font-size:12px;background:#fff;border-bottom:1px solid #ddd;flex:none;flex-wrap:wrap}
 .dot{display:inline-block;width:14px;height:14px;border-radius:7px;border:3px solid;vertical-align:-3px;margin-right:4px}
 #tools{display:none;padding:6px 8px;background:#fffbe8;border-bottom:1px solid #e8e0b0;flex:none;flex-wrap:wrap;gap:6px}
-body.edit #tools{display:flex}
+body.tools #tools{display:flex}
+body.palco #chips,body.palco #legend,body.palco #stage,body.palco #panel,body.palco #bAdd{display:none}body.palco #pal{display:block!important}
 #stage{position:relative;flex:1;min-height:120px;background:#fff;touch-action:none;overflow:hidden}
 #stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
 #zb{position:absolute;right:8px;bottom:8px;display:flex;flex-direction:column;gap:6px}
@@ -30,16 +31,17 @@ body.sel #panel{height:50dvh}
 textarea{width:100%;font:14px system-ui;margin-top:6px;user-select:text;-webkit-user-select:text}
 #wa{display:block;margin-top:6px;padding:10px;border-radius:8px;background:#25D366;color:#fff;text-align:center;font-weight:600;text-decoration:none;font-size:14px}
 #big{position:fixed;inset:0;background:#000e;display:none;z-index:20}#big img{width:100%;height:100%;object-fit:contain}
-.ed{display:none}body.edit .ed{display:block}
+
 #out{display:none;width:100%;user-select:text;-webkit-user-select:text}
 .m{cursor:pointer}.m text{font-weight:700;pointer-events:none}
 </style></head><body>
 <div id="app">
-<div id="tabs"><button id="tV" class="on">Visão</button><button id="tE">Editar</button></div>
+<div id="tabs"><button id="tV" class="on">Planta</button><button id="tE">Palco</button><button id="bAdd" style="flex:none;width:46px;font-size:22px;padding:4px">＋</button><button id="bMore" style="flex:none;width:46px;font-size:20px;padding:4px">⋯</button></div>
 <div id="chips"></div>
-<div id="legend"><span><span class="dot" style="border-color:#F59E0B"></span>Ajustar posição</span><span><span class="dot" style="border-color:#1D9E75"></span>Ponto novo</span><label style="margin-left:auto"><input type="checkbox" id="cEl"> Elétrica</label></div>
-<div id="tools"><button id="bAdd">＋ Adicionar ponto</button><button id="bRen">Renumerar esq→dir</button><button id="bCp">Copiar posições</button><button id="bRs">Restaurar</button><textarea id="out" rows="8"></textarea><div id="msg" style="font-size:13px;width:100%"></div></div>
-<div id="stage"><svg id="s"><g id="vp"><image id="el" href="elec.jpg" width="3200" height="1670" opacity=".28" style="display:none"/><image href="walls.png" width="3200" height="1670"/><g id="mk"></g></g></svg>
+<div id="legend"><span><span class="dot" style="border-color:#F59E0B"></span>Ajustar posição</span><span><span class="dot" style="border-color:#1D9E75"></span>Ponto novo</span><label style="margin-left:auto"><input type="checkbox" id="cEl" checked> Elétrica</label></div>
+<div id="tools"><button id="bRen">Renumerar esq→dir</button><button id="bCp">Copiar posições</button><button id="bRs">Restaurar</button><textarea id="out" rows="8"></textarea><div id="msg" style="font-size:13px;width:100%"></div></div>
+<iframe id="pal" src="palco/index.html" style="display:none;flex:1;border:0;width:100%;background:#fff"></iframe>
+<div id="stage"><svg id="s"><g id="vp"><image id="el" href="elec.jpg" width="3200" height="1670" opacity=".3"/><image href="walls.png" width="3200" height="1670"/><g id="mk"></g></g></svg>
 <div id="zb"><button id="zi">+</button><button id="zo">−</button><button id="zf" style="font-size:13px">Tudo</button></div></div>
 <div id="panel"><div class="in" id="pin"></div></div>
 </div>
@@ -58,7 +60,7 @@ M.forEach(o=>{const s=st[o.id];if(s){o.x=s[0];o.y=s[1];if(s[2])o.k=s[2];if(s[3])
 M.forEach(o=>{if(o.x<200&&!o.ph&&!st[o.id])o.un=1});
 function save(){M.forEach(o=>{st[o.id]=[o.x,o.y,o.k,o.n]});wr(KEY,st);wr(KEY+"-add",M.filter(o=>o.id[0]=="u").map(o=>({id:o.id,ph:0,x:o.x,y:o.y,k:o.k,n:o.n})))}
 const svg=$("s"),vp=$("vp"),stage=$("stage");
-let V={k:.2,tx:0,ty:0},mode="v",sel=null;
+let V={k:.2,tx:0,ty:0},mode="v",sel=null,moveId=null;
 const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p&&p.appendChild(e);return e};
 function apply(){vp.setAttribute("transform",`translate(${V.tx},${V.ty}) scale(${V.k})`);M.forEach(o=>{if(o.g)o.g.setAttribute("transform",`translate(${o.x},${o.y}) scale(${1/V.k})`)})}
 function fitK(){const r=stage.getBoundingClientRect();return Math.min(r.width/3200,r.height/1670)}
@@ -69,25 +71,26 @@ function zoomAt(px,py,nk){const o=V.k;V.k=nk;V.tx=px-(px-V.tx)*nk/o;V.ty=py-(py-
 let anim=0;
 function flyTo(x,y,k){cancelAnimationFrame(anim);const r=stage.getBoundingClientRect(),a={...V},b={k,tx:r.width/2-x*k,ty:r.height/2-y*k};let t=0;
  const f=()=>{t+=.08;const e=t>=1?1:1-Math.pow(1-t,3);V.k=a.k+(b.k-a.k)*e;V.tx=a.tx+(b.tx-a.tx)*e;V.ty=a.ty+(b.ty-a.ty)*e;apply();if(t<1)anim=requestAnimationFrame(f);else{clamp();apply()}};f()}
-function draw(o){if(o.g)o.g.remove();if(o.un&&mode=="v"){o.g=null;return}
+function draw(o){if(o.g)o.g.remove();if(o.un&&o.id!=sel){o.g=null;return}
  const g=el("g",{class:"m"},$("mk"));o.g=g;const c=o.k=="n"?"#1D9E75":"#F59E0B",on=o.id==sel;
  el("circle",{r:on?22:17,fill:on?c:"#fff","fill-opacity":on?.95:.85,stroke:c,"stroke-width":on?5:4},g);
  const t=el("text",{y:6,"font-size":o.n>9?15:17,"text-anchor":"middle",fill:on&&o.k=="n"?"#fff":"#111"},g);t.textContent=o.n;
  g.dataset.id=o.id}
 function drawAll(){$("mk").innerHTML="";M.forEach(draw);apply();chips()}
 function chips(){const c=$("chips");c.innerHTML="";[...M].sort((a,b)=>a.n-b.n).forEach(o=>{const b=document.createElement("button");b.className="chip "+o.k+(o.id==sel?" sel":"")+(o.un?" un":"");b.textContent=o.n;b.onclick=()=>pick(o.id,true);c.appendChild(b);if(o.id==sel)setTimeout(()=>b.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"}),0)})}
-function pick(id,fly){sel=id;const o=M.find(a=>a.id==id);document.body.classList.add("sel");drawAll();panel(o);
- setTimeout(()=>{if(fly&&!(o.un&&mode=="v")){const r=stage.getBoundingClientRect();flyTo(o.x,o.y,Math.max(r.width/900,fitK()*2.5))}},60)}
+function pick(id,fly){sel=id;const o=M.find(a=>a.id==id);if(o.un){const r=stage.getBoundingClientRect();o.x=Math.round((r.width/2-V.tx)/V.k);o.y=Math.round((r.height/2-V.ty)/V.k);o.un=0;moveId=o.id;fly=false;save()}else if(moveId!=id)moveId=null;document.body.classList.add("sel");drawAll();panel(o);
+ setTimeout(()=>{if(fly){const r=stage.getBoundingClientRect();flyTo(o.x,o.y,Math.max(r.width/900,fitK()*2.5))}},60)}
 function close(){sel=null;document.body.classList.remove("sel");drawAll()}
 function panel(o){const p=$("pin");const tipo=o.k=="n"?"PONTO NOVO":"AJUSTAR POSIÇÃO";
  p.innerHTML=`<h3>Ponto ${o.n} · <span style="color:${o.k=="n"?"#1D9E75":"#B7770A"}">${tipo}</span> <button id="cl" style="float:right;padding:2px 10px">✕</button></h3>`+
  (o.ph?`<img id="photo" src="thumbs/t${String(o.ph).padStart(2,"0")}.jpg">`:`<div class="nophoto">Sem foto</div>`)+
- `<div class="ed" style="margin:6px 0"><button id="ba" class="${o.k=="a"?"on":""}">Ajustar (já existe)</button> <button id="bn" class="${o.k=="n"?"on":""}">Novo (falta)</button> `+(o.id[0]=="u"||!o.ph?`<button id="bd" style="color:#b00">Excluir</button>`:"")+`</div>`+
+ `<div style="margin:6px 0"><button id="mv" class="${moveId==o.id?"on":""}">✥ Mover</button> <button id="ba" class="${o.k=="a"?"on":""}">Ajustar</button> <button id="bn" class="${o.k=="n"?"on":""}">Novo</button> `+(o.id[0]=="u"?`<button id="bd" style="color:#b00">Excluir</button>`:"")+`</div>`+
  `<textarea id="nt" rows="2" placeholder="Observação (ex.: subir 20 cm, ao lado da janela)"></textarea><a id="wa" target="_blank" rel="noopener">Enviar observação por WhatsApp</a>`;
- $("nt").value=nt[o.id]||"";const upd=()=>{const t=`Projeto elétrico — Ponto ${o.n}${o.ph?" (foto "+o.ph+")":""}, ${o.k=="n"?"ponto NOVO":"AJUSTAR posição"}`+(nt[o.id]?`\nObservação: ${nt[o.id]}`:"")+`\n(anexe a foto)`;$("wa").href="https://wa.me/447525005668?text="+encodeURIComponent(t)};upd();
+ $("nt").value=nt[o.id]||"";const upd=()=>{const t=`Projeto elétrico — Ponto ${o.n}${o.ph?" (foto "+o.ph+")":""}, ${o.k=="n"?"ponto NOVO":"AJUSTAR posição"}`+(nt[o.id]?`\nObservação: ${nt[o.id]}`:"")+`\n(anexe a foto)`;$("wa").href="https://wa.me/447525005686?text="+encodeURIComponent(t)};upd();
  $("nt").oninput=e=>{nt[o.id]=e.target.value;wr(KEY+"-n",nt);upd()};
  $("cl").onclick=close;
  if($("photo"))$("photo").onclick=function(){$("big").firstChild.src=this.src;$("big").style.display="block"};
+ $("mv").onclick=()=>{moveId=moveId==o.id?null:o.id;panel(o)};
  $("ba").onclick=()=>{o.k="a";save();drawAll();panel(o)};$("bn").onclick=()=>{o.k="n";save();drawAll();panel(o)};
  if($("bd"))$("bd").onclick=()=>{M.splice(M.indexOf(o),1);delete st[o.id];wr(KEY,st);save();close()}}
 $("big").onclick=()=>$("big").style.display="none";
@@ -96,7 +99,7 @@ const P=new Map();let gs=null,tapT=0;
 function sp(e){const r=stage.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
 stage.addEventListener("pointerdown",e=>{if(e.target.closest("#zb"))return;stage.setPointerCapture(e.pointerId);P.set(e.pointerId,{...sp(e),sx:e.clientX,sy:e.clientY,t:e.target.closest(".m")});cancelAnimationFrame(anim);
  if(P.size==2){const [a,b]=[...P.values()];gs={d:Math.hypot(a.x-b.x,a.y-b.y),k:V.k,cx:(a.x+b.x)/2,cy:(a.y+b.y)/2,tx:V.tx,ty:V.ty,pinch:1}}
- else{const p=P.get(e.pointerId);gs={tx:V.tx,ty:V.ty,x:p.x,y:p.y,drag:mode=="e"&&p.t?M.find(o=>o.id==p.t.dataset.id):null,moved:0}}});
+ else{const p=P.get(e.pointerId);gs={tx:V.tx,ty:V.ty,x:p.x,y:p.y,drag:p.t&&p.t.dataset.id==moveId?M.find(o=>o.id==p.t.dataset.id):null,moved:0}}});
 stage.addEventListener("pointermove",e=>{const p=P.get(e.pointerId);if(!p)return;const c=sp(e);p.x=c.x;p.y=c.y;
  if(gs&&gs.pinch&&P.size>=2){const [a,b]=[...P.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),nk=gs.k*d/gs.d;const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
   const k0=V.k;V.k=nk;const sx=(gs.cx-gs.tx)/gs.k,sy=(gs.cy-gs.ty)/gs.k;V.tx=mx-sx*nk;V.ty=my-sy*nk;clamp();apply();return}
@@ -104,7 +107,7 @@ stage.addEventListener("pointermove",e=>{const p=P.get(e.pointerId);if(!p)return
   if(gs.drag&&gs.moved>6){const o=gs.drag;o.x=Math.round((c.x-V.tx)/V.k);o.y=Math.round((c.y-V.ty)/V.k);o.un=0;o.g.setAttribute("transform",`translate(${o.x},${o.y}) scale(${1/V.k})`)}
   else if(!gs.drag&&gs.moved>6){V.tx=gs.tx+dx;V.ty=gs.ty+dy;clamp();apply()}}});
 function up(e){const p=P.get(e.pointerId);P.delete(e.pointerId);if(!gs)return;
- if(!gs.pinch&&p&&gs.moved<=6&&p.t){pick(p.t.dataset.id,mode=="v")}
+ if(!gs.pinch&&p&&gs.moved<=6&&p.t){pick(p.t.dataset.id,true)}
  else if(!gs.pinch&&gs.drag&&gs.moved>6){save();chips();if(sel==gs.drag.id)panel(gs.drag)}
  if(P.size==0)gs=null;else if(P.size==1){const q=[...P.values()][0];gs={tx:V.tx,ty:V.ty,x:q.x,y:q.y,drag:null,moved:99}}}
 stage.addEventListener("pointerup",up);stage.addEventListener("pointercancel",up);
@@ -113,9 +116,9 @@ $("zi").onclick=()=>{const r=stage.getBoundingClientRect();zoomAt(r.width/2,r.he
 $("zo").onclick=()=>{const r=stage.getBoundingClientRect();zoomAt(r.width/2,r.height/2,V.k/1.5)};
 $("zf").onclick=()=>{fit()};
 $("cEl").onchange=e=>$("el").style.display=e.target.checked?"":"none";
-function setMode(m){mode=m;document.body.classList.toggle("edit",m=="e");$("tV").classList.toggle("on",m=="v");$("tE").classList.toggle("on",m=="e");drawAll();if(sel)panel(M.find(o=>o.id==sel));setTimeout(fit,0)}
-$("tV").onclick=()=>setMode("v");$("tE").onclick=()=>setMode("e");
-$("bAdd").onclick=()=>{const r=stage.getBoundingClientRect();const n=Math.max(0,...M.map(o=>o.n))+1;const o={id:"u"+Date.now(),ph:0,k:"n",n,x:Math.round((r.width/2-V.tx)/V.k),y:Math.round((r.height/2-V.ty)/V.k)};M.push(o);save();pick(o.id,false)};
+function setMode(m){mode=m;document.body.classList.toggle("palco",m=="e");$("tV").classList.toggle("on",m=="v");$("tE").classList.toggle("on",m=="e");if(m=="v")setTimeout(()=>{clamp();apply()},50)}
+$("tV").onclick=()=>setMode("v");$("tE").onclick=()=>setMode("e");$("bMore").onclick=()=>document.body.classList.toggle("tools");
+$("bAdd").onclick=()=>{const r=stage.getBoundingClientRect();const n=Math.max(0,...M.map(o=>o.n))+1;if(mode!="v")return;const o={id:"u"+Date.now(),ph:0,k:"n",n,x:Math.round((r.width/2-V.tx)/V.k),y:Math.round((r.height/2-V.ty)/V.k)};M.push(o);moveId=o.id;save();pick(o.id,false)};
 $("bRen").onclick=()=>{[...M].filter(o=>!o.un).sort((a,b)=>a.x-b.x).forEach((o,i)=>o.n=i+1);let n=M.filter(o=>!o.un).length;M.filter(o=>o.un).forEach(o=>o.n=++n);save();drawAll();if(sel)panel(M.find(o=>o.id==sel))};
 $("bCp").onclick=()=>{const out=[...M].sort((a,b)=>a.n-b.n).map(o=>`Ponto ${o.n}${o.ph?" (foto "+o.ph+")":" (extra)"} ${o.k=="n"?"NOVO":"AJUSTAR"}: [${o.x},${o.y}]${o.un?" (não posicionado)":""}${nt[o.id]?" — "+nt[o.id].replace(/\n/g," "):""}`).join("\n");
  const t=$("out");t.style.display="block";t.value=out;t.focus();t.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}$("msg").textContent=ok?"Copiado! Cole na conversa.":"Selecione o texto, copie e cole na conversa."};
