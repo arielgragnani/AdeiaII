@@ -35,7 +35,7 @@ textarea{width:100%;font:14px system-ui;margin-top:6px;flex:none;height:56px;use
 
 #out{display:none;width:100%;user-select:text;-webkit-user-select:text}
 .m{cursor:pointer}.m text{font-weight:700;pointer-events:none}
-#slw{position:absolute;left:6px;bottom:6px;z-index:5;display:flex;gap:6px;align-items:center}#slb{width:30px;height:30px;padding:0;opacity:.45;border-radius:15px}#sl{display:none;width:140px}#slw.open #sl{display:block}#slw.open #slb{opacity:.9}</style></head><body>
+#slw{position:absolute;left:6px;bottom:6px;z-index:5;display:flex;gap:6px;align-items:center}#slb{width:38px;height:38px;padding:0;opacity:.5;border-radius:19px;font-size:18px}#sl{display:none;width:min(320px,55vw);height:38px;accent-color:#378ADD;margin:0}#slw.open #sl{display:block}#slw.open #slb{opacity:.9}</style></head><body>
 <div id="app">
 <div id="chips"></div>
 <div id="big"><img></div><div id="main"><div id="stage"><div id="slw"><button id="slb">◐</button><input type="range" id="sl" min="0" max="100" value="0"></div><iframe id="pal" src="palco/view.html" style="display:none;position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff;z-index:2"></iframe><svg id="s"><g id="vp"><image id="el" href="elec.jpg" width="3200" height="1670" opacity="0"/><image id="wl" href="walls.png" width="3200" height="1670"/><g id="mk"></g></g></svg></div>
@@ -119,5 +119,5 @@ function ori(){document.body.classList.toggle("rot",innerHeight>innerWidth);setT
 addEventListener("resize",ori);ori();
 drawAll();setTimeout(fit,50);
 $("slb").onclick=()=>$("slw").classList.toggle("open");
-$("sl").oninput=e=>{const t=e.target.value/100;$("el").setAttribute("opacity",t);$("wl").setAttribute("opacity",1-.85*t)};
+$("sl").oninput=e=>{const t=e.target.value/100;$("el").setAttribute("opacity",t);$("wl").setAttribute("opacity",1-t);$("mk").style.opacity=1-t;$("mk").style.pointerEvents=t>.9?"none":""};
 </script></body></html>
