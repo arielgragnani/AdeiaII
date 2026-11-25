@@ -16,7 +16,7 @@ button.on{background:#222;color:#fff;border-color:#222}
 #legend{display:flex;gap:14px;align-items:center;padding:4px 10px;font-size:12px;background:#fff;border-bottom:1px solid #ddd;flex:none;flex-wrap:wrap}
 .dot{display:inline-block;width:14px;height:14px;border-radius:7px;border:3px solid;vertical-align:-3px;margin-right:4px}
 #tools{display:none;padding:6px 8px;background:#fffbe8;border-bottom:1px solid #e8e0b0;flex:none;flex-wrap:wrap;gap:6px}
-body.palco #pal{display:block!important}body.palco.sel #panel{width:30%}
+body.palco #pal{display:block!important}body.palco #main{flex-direction:column}body.palco.sel #panel{width:auto;border-left:0;border-top:2px solid #ccc}
 #main{flex:1;display:flex;min-height:0}
 body.rot #app{position:fixed;top:0;left:0;width:100dvh;height:100dvw;transform-origin:0 0;transform:translateX(100dvw) rotate(90deg)}
 #stage{position:relative;flex:1;min-width:0;background:#fff;touch-action:none;overflow:hidden}
@@ -78,9 +78,9 @@ function chips(){const c=$("chips");c.innerHTML="";[...M].sort((a,b)=>a.n-b.n).f
 function pick(id,fly){if(id=="palco"){sel="palco";moveId=null;document.body.classList.add("sel","palco");drawAll();palPanel();return}document.body.classList.remove("palco");sel=id;const o=M.find(a=>a.id==id);if(o.un){const r=S();o.x=Math.round((r.width/2-V.tx)/V.k);o.y=Math.round((r.height/2-V.ty)/V.k);o.un=0;moveId=o.id;fly=false;save()}else if(moveId!=id)moveId=null;document.body.classList.add("sel");drawAll();panel(o);
  setTimeout(()=>{if(fly){const r=S();flyTo(o.x,o.y,Math.max(r.width/900,fitK()*2.5))}},60)}
 function close(){sel=null;moveId=null;document.body.classList.remove("sel","palco");drawAll();setTimeout(()=>{fit()},50)}
-function palPanel(){const p=$("pin");p.innerHTML=`<h3 style="margin:0 0 4px;flex:none">Palco <button id="cl" style="float:right;padding:2px 10px">✕</button></h3><textarea id="nt" style="flex:1;height:auto" placeholder="Observação sobre o palco"></textarea><a id="wa" target="_blank" rel="noopener" style="flex:none">Enviar por WhatsApp</a>`;
+function palPanel(){const p=$("pin");p.innerHTML=`<div style="display:flex;gap:6px;align-items:stretch"><textarea id="nt" style="flex:1;margin:0;height:52px" placeholder="Observação sobre o palco"></textarea><a id="wa" target="_blank" rel="noopener" style="margin:0;display:flex;align-items:center;padding:0 12px">Enviar por WhatsApp</a><button id="cl" style="padding:2px 12px">✕</button></div>`;p.style.height="auto";
  $("nt").value=nt.palco||"";const upd=()=>{$("wa").href="https://wa.me/447525005686?text="+encodeURIComponent("Projeto elétrico — PALCO"+(nt.palco?"\nObservação: "+nt.palco:"")+"\n(anexe a foto)")};upd();$("nt").oninput=e=>{nt.palco=e.target.value;wr(KEY+"-n",nt);upd()};$("cl").onclick=close}
-function panel(o){const p=$("pin");const tipo=o.k=="n"?"PONTO NOVO":"AJUSTAR POSIÇÃO";
+function panel(o){const p=$("pin");p.style.height="";const tipo=o.k=="n"?"PONTO NOVO":"AJUSTAR POSIÇÃO";
  p.innerHTML=`<h3 style="margin:0 0 4px;flex:none">Ponto ${o.n} · <span style="color:${o.k=="n"?"#1D9E75":"#B7770A"}">${tipo}</span> <button id="cl" style="float:right;padding:2px 10px">✕</button></h3>`+
  (o.ph?`<img id="photo" src="thumbs/t${String(o.ph).padStart(2,"0")}.jpg">`:`<div class="nophoto">Sem foto</div>`)+
  `<textarea id="nt" placeholder="Observação (ex.: subir 20 cm)"></textarea><a id="wa" target="_blank" rel="noopener" style="flex:none">Enviar por WhatsApp</a>`;

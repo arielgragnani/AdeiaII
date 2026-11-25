@@ -29,10 +29,14 @@ svg.nolbl .lbl{display:none}svg.nolet .let{display:none}
 <style>body{padding:0!important;overflow:hidden}h1,p.sub,.bar,textarea,.legend,.notes,#msg{display:none!important}
 .scroll{border:0!important;border-radius:0!important;max-height:none!important;height:100vh;overflow:hidden;touch-action:none}
 svg{width:150%!important;height:auto;max-width:none}.node{pointer-events:none!important}</style>
-<script>addEventListener("load",()=>{const s=document.getElementById("scroll");s.scrollLeft=(s.scrollWidth-s.clientWidth)/2;s.scrollTop=(s.scrollHeight-s.clientHeight)/2;
+<script>addEventListener("load",()=>{const s=document.getElementById("scroll"),sv=document.getElementById("svg");let done=0,lw=0,lh=0;
+const init=()=>{if(!s.clientWidth||!s.clientHeight)return;if(done&&lw==s.clientWidth&&lh==s.clientHeight)return;lw=s.clientWidth;lh=s.clientHeight;done=1;
+ sv.style.setProperty("width",Math.max(lw,lh*1.333*1.9)+"px","important");s.scrollLeft=(s.scrollWidth-lw)/2;s.scrollTop=Math.max(0,sv.getBoundingClientRect().height*0.6-lh/2)};
+new ResizeObserver(init).observe(s);init();
 let d=null;s.addEventListener("pointerdown",e=>{d={x:e.clientX,y:e.clientY,l:s.scrollLeft,t:s.scrollTop};s.setPointerCapture(e.pointerId)});
 s.addEventListener("pointermove",e=>{if(!d)return;s.scrollLeft=d.l-(e.clientX-d.x);s.scrollTop=d.t-(e.clientY-d.y)});
 const u=()=>d=null;s.addEventListener("pointerup",u);s.addEventListener("pointercancel",u)})</script>
+
 </head>
 <body>
 <h1>Planta de eletrodutos do palco (som e energia)</h1>
