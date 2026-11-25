@@ -1,82 +1,125 @@
 <!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Projeto elétrico térreo — ajustes e palco</title>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Planta elétrica — pontos</title>
 <style>
-body{margin:0;font-family:system-ui,sans-serif;background:#f4f2ee;color:#222}
-header{padding:10px 12px;position:sticky;top:0;background:#fff;border-bottom:1px solid #ddd;z-index:5}
-h1{font-size:16px;margin:0 0 6px}
-.bar{display:flex;flex-wrap:wrap;gap:6px}
-button{font:inherit;font-size:13px;padding:6px 10px;border:1px solid #bbb;background:#fff;border-radius:8px}
-button.on{background:#222;color:#fff}
-#wrap{overflow:auto;height:62vh;background:#fff;border-bottom:1px solid #ddd;touch-action:pan-x pan-y}
-svg{display:block;touch-action:none}
-.m{cursor:grab}.m text{font-weight:700;pointer-events:none}
-#info{padding:10px 12px}
-#info img{width:100%;border-radius:6px;display:block;margin-bottom:8px}
-#big{position:fixed;inset:0;background:#000e;display:none;z-index:20;overflow:auto}#big img{width:100%;min-height:100%;object-fit:contain}
-#info p{margin:0 0 8px;font-size:14px}
-.note{padding:0 12px 20px;font-size:13px;line-height:1.5}
-svg.nolbl .lbl{display:none}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;font-family:system-ui,sans-serif;background:#f4f2ee;color:#222;-webkit-user-select:none;user-select:none}
+#app{display:flex;flex-direction:column;height:100dvh}
+#tabs{display:flex;gap:6px;padding:6px 8px;background:#fff;border-bottom:1px solid #ddd}
+#tabs button{flex:1;padding:9px;font-size:15px;font-weight:600}
+button{font:inherit;font-size:13px;padding:6px 10px;border:1px solid #bbb;background:#fff;border-radius:8px;color:#222}
+button.on{background:#222;color:#fff;border-color:#222}
+#chips{display:flex;gap:6px;padding:6px 8px;overflow-x:auto;background:#fff;border-bottom:1px solid #eee;-webkit-overflow-scrolling:touch;flex:none}
+.chip{flex:none;min-width:38px;height:38px;border-radius:19px;border:3px solid #F59E0B;background:#fff;font-weight:700;font-size:15px;padding:0}
+.chip.n{border-color:#1D9E75}.chip.sel{background:#F59E0B;color:#111}.chip.n.sel{background:#1D9E75;color:#fff}.chip.un{opacity:.35;border-style:dashed}
+#legend{display:flex;gap:14px;align-items:center;padding:4px 10px;font-size:12px;background:#fff;border-bottom:1px solid #ddd;flex:none;flex-wrap:wrap}
+.dot{display:inline-block;width:14px;height:14px;border-radius:7px;border:3px solid;vertical-align:-3px;margin-right:4px}
+#tools{display:none;padding:6px 8px;background:#fffbe8;border-bottom:1px solid #e8e0b0;flex:none;flex-wrap:wrap;gap:6px}
+body.edit #tools{display:flex}
+#stage{position:relative;flex:1;min-height:120px;background:#fff;touch-action:none;overflow:hidden}
+#stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+#zb{position:absolute;right:8px;bottom:8px;display:flex;flex-direction:column;gap:6px}
+#zb button{width:42px;height:42px;font-size:22px;padding:0}
+#panel{flex:none;height:0;overflow:auto;background:#f4f2ee;border-top:2px solid #ccc}
+body.sel #panel{height:50dvh}
+#panel .in{padding:8px 10px}
+#panel h3{margin:0 0 4px;font-size:16px}
+#photo{width:100%;max-height:30dvh;object-fit:contain;background:#000;border-radius:6px;display:block}
+.nophoto{padding:14px;text-align:center;color:#666;background:#e8e4dc;border-radius:6px;font-size:14px}
+textarea{width:100%;font:14px system-ui;margin-top:6px;user-select:text;-webkit-user-select:text}
+#wa{display:block;margin-top:6px;padding:10px;border-radius:8px;background:#25D366;color:#fff;text-align:center;font-weight:600;text-decoration:none;font-size:14px}
+#big{position:fixed;inset:0;background:#000e;display:none;z-index:20}#big img{width:100%;height:100%;object-fit:contain}
+.ed{display:none}body.edit .ed{display:block}
+#out{display:none;width:100%;user-select:text;-webkit-user-select:text}
+.m{cursor:pointer}.m text{font-weight:700;pointer-events:none}
 </style></head><body>
-<header><h1>Projeto elétrico térreo — pontos para ajustar</h1>
-<div class="bar"><button id="bAmp">Ampliar</button><button id="bLbl">Esconder nomes</button><button id="bCp">Copiar posições</button><button id="bRs">Restaurar</button></div></header>
-<div id="wrap"><svg id="s" viewBox="0 0 3200 1670" width="1600"><image href="plan.jpg" width="3200" height="1670"/><g id="pal"></g><g id="mk"></g></svg></div>
-<div id="big" onclick="this.style.display='none'"><img></div><div id="info"><div id="tx"><p><b>Toque num círculo numerado</b> para ver a foto. Toque na foto para ampliar. Arraste cada círculo até o ponto certo da planta.</p><p id="tg"></p></div><div id="ph" style="margin-top:8px"></div></div>
-<div id="out" style="display:none;padding:10px 12px"><p id="msg" style="margin:0 0 6px;font-size:14px"></p><textarea id="ta" rows="8" style="width:100%;box-sizing:border-box;font:13px monospace"></textarea></div>
-<div class="note"><b>Como usar:</b> os pontos 15 a 18 são extras, ainda sem foto, empilhados na Garagem. Arraste-os para o lugar certo. Depois de selecionar um, escolha: <b>Ajustar</b> (âmbar: ponto que já existe e precisa mudar de posição) ou <b>Novo</b> (verde +: arandela que falta). Toque em <b>Copiar posições</b> e me envie o texto. Não precisa desenhar ligações.</div>
+<div id="app">
+<div id="tabs"><button id="tV" class="on">Visão</button><button id="tE">Editar</button></div>
+<div id="chips"></div>
+<div id="legend"><span><span class="dot" style="border-color:#F59E0B"></span>Ajustar posição</span><span><span class="dot" style="border-color:#1D9E75"></span>Ponto novo</span><label style="margin-left:auto"><input type="checkbox" id="cEl"> Elétrica</label></div>
+<div id="tools"><button id="bAdd">＋ Adicionar ponto</button><button id="bRen">Renumerar esq→dir</button><button id="bCp">Copiar posições</button><button id="bRs">Restaurar</button><textarea id="out" rows="8"></textarea><div id="msg" style="font-size:13px;width:100%"></div></div>
+<div id="stage"><svg id="s"><g id="vp"><image id="el" href="elec.jpg" width="3200" height="1670" opacity=".28" style="display:none"/><image href="walls.png" width="3200" height="1670"/><g id="mk"></g></g></svg>
+<div id="zb"><button id="zi">+</button><button id="zo">−</button><button id="zf" style="font-size:13px">Tudo</button></div></div>
+<div id="panel"><div class="in" id="pin"></div></div>
+</div>
+<div id="big"><img></div>
 <script>
-const KEY="ep-pos-v2",$=id=>document.getElementById(id),svg=$("s"),NS="http://www.w3.org/2000/svg";
-const NOTE=["","Arandela — ajustar posição","Arandela — ajustar posição"];
-const M=[{id:"f13",n:1,ph:13,x:486,y:834,k:"a"},
-{id:"f14",n:2,ph:14,x:620,y:912,k:"n"},
-{id:"f12",n:3,ph:12,x:1048,y:1222,k:"a"},
-{id:"f7",n:4,ph:7,x:1448,y:1314,k:"a"},
-{id:"f11",n:5,ph:11,x:1544,y:1572,k:"a"},
-{id:"f8",n:6,ph:8,x:2204,y:784,k:"n"},
-{id:"f9",n:7,ph:9,x:2214,y:1282,k:"n"},
-{id:"f10",n:8,ph:10,x:2216,y:1568,k:"n"},
-{id:"f3",n:9,ph:3,x:2452,y:776,k:"a"},
-{id:"f6",n:10,ph:6,x:2638,y:782,k:"n"},
-{id:"f5",n:11,ph:5,x:2852,y:780,k:"n"},
-{id:"f2",n:12,ph:2,x:2938,y:544,k:"a"},
-{id:"f1",n:13,ph:1,x:2974,y:384,k:"a"},
-{id:"f4",n:14,ph:4,x:3052,y:790,k:"a"},
-{id:"x1",n:15,ph:0,x:120,y:140,k:"n"},
-{id:"x2",n:16,ph:0,x:120,y:260,k:"n"},
-{id:"x3",n:17,ph:0,x:120,y:380,k:"n"},
-{id:"x4",n:18,ph:0,x:120,y:500,k:"n"}];
-const P=[["SLbox","Caixa SE (sinal+energia) — alto esq.",1190,690,"#1D9E75"],["SRbox","Caixa SD (sinal+energia) — alto dir.",1650,690,"#1D9E75"],["MESA","Mesa de som (caixa S|E)",1260,800,"#378ADD"],["RT1","RT1 piso (XLR+tomada)",1290,900,"#D85A30"],["INST","INST piso (XLR+tomada)",1390,930,"#D85A30"],["RT2","RT2 piso (XLR+tomada)",1500,900,"#D85A30"],["EST","Interface / estúdio (XLR, tubulação 25 mm)",1160,850,"#378ADD"]].map(a=>({id:a[0],l:a[1],x:a[2],y:a[3],c:a[4],p:1}));
-let st=JSON.parse(localStorage.getItem(KEY)||"{}");try{}catch(e){}
-function load(){try{st=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){st={}}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
-load();let nt={};try{nt=JSON.parse(localStorage.getItem(KEY+"-n")||"{}")}catch(e){}
-const all=[...M];all.forEach(o=>{if(st[o.id]){o.x=st[o.id][0];o.y=st[o.id][1];if(st[o.id][2])o.k=st[o.id][2]}});
-function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p&&p.appendChild(e);return e}
-let sel=null;
-function draw(o){if(o.g)o.g.remove();const g=el("g",{class:"m",transform:`translate(${o.x},${o.y})`},$("mk"));o.g=g;g.innerHTML="";
- if(0){el("rect",{x:-14,y:-14,width:28,height:28,rx:5,fill:o.c,stroke:"#fff","stroke-width":3},g);const t=el("text",{x:20,y:6,"font-size":24,fill:o.c,stroke:"#fff","stroke-width":5,"paint-order":"stroke",class:"lbl"},g);t.textContent=o.l;return}
- const c=o.k=="n"?"#1D9E75":"#F59E0B";
- el("circle",{r:44,fill:c,"fill-opacity":.18,stroke:c,"stroke-width":o.id==sel?10:6},g);
- if(o.k=="n"){el("path",{d:"M-18 0H18M0 -18V18",stroke:c,"stroke-width":7},g)}
- const t=el("text",{y:o.k=="n"?-52:12,"font-size":o.k=="n"?32:34,"text-anchor":"middle",fill:"#111",stroke:"#fff","stroke-width":6,"paint-order":"stroke"},g);t.textContent=o.n;
- g.onclick=null}
-all.forEach(draw);
-function pt(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())}
-let drag=null,moved=0;
-svg.addEventListener("pointerdown",e=>{const g=e.target.closest(".m");if(!g)return;const o=all.find(a=>a.g===g);const q=pt(e);drag={o,dx:q.x-o.x,dy:q.y-o.y};moved=0;svg.setPointerCapture(e.pointerId);e.preventDefault()});
-svg.addEventListener("pointermove",e=>{if(!drag)return;const q=pt(e),o=drag.o;o.x=Math.round(q.x-drag.dx);o.y=Math.round(q.y-drag.dy);moved++;o.g.setAttribute("transform",`translate(${o.x},${o.y})`)});
-svg.addEventListener("pointerup",e=>{if(!drag)return;const o=drag.o;drag=null;st[o.id]=[o.x,o.y,o.k];save();choose(o)});
-function choose(o){sel=o.id;M.forEach(draw);$("ph").innerHTML=o.ph?`<img src="thumbs/t${String(o.ph).padStart(2,"0")}.jpg">`:"<p>Ponto extra: foto ainda não enviada.</p>";$("ph").firstChild.onclick=function(){$("big").firstChild.src=this.src;$("big").style.display="block"};
- $("tg").innerHTML=`<b>Ponto ${o.n}</b>${o.ph?" (foto "+o.ph+")":""}<br><button id="ba" class="${o.k=="a"?"on":""}">Ajustar (já existe)</button> <button id="bn" class="${o.k=="n"?"on":""}">Novo (falta)</button>`;
- $("tg").insertAdjacentHTML("beforeend",`<textarea id="nt" rows="3" placeholder="Observação (ex.: subir 20 cm, arandela fica ao lado da janela)" style="width:100%;box-sizing:border-box;margin-top:8px;font:14px system-ui"></textarea>`);$("nt").value=nt[o.id]||"";$("nt").oninput=e=>{nt[o.id]=e.target.value;try{localStorage.setItem(KEY+"-n",JSON.stringify(nt))}catch(x){}};
- const wa=document.createElement("a");wa.target="_blank";wa.rel="noopener";wa.textContent="Enviar observação por WhatsApp";wa.style.cssText="display:block;margin-top:8px;padding:10px;border-radius:8px;background:#25D366;color:#fff;text-align:center;font-weight:600;text-decoration:none";$("tg").appendChild(wa);
- const upd=()=>{const t=`Projeto elétrico — Ponto ${o.n}${o.ph?" (foto "+o.ph+")":" (extra)"}, ${o.k=="n"?"ponto NOVO":"AJUSTAR posição"}`+(nt[o.id]?`\nObservação: ${nt[o.id]}`:"")+`\n(anexe a foto)`;wa.href="https://wa.me/?text="+encodeURIComponent(t)};upd();$("nt").addEventListener("input",upd);$("ba").addEventListener("click",()=>setTimeout(()=>0));
- $("ba").onclick=()=>{o.k="a";st[o.id]=[o.x,o.y,"a"];save();choose(o)};$("bn").onclick=()=>{o.k="n";st[o.id]=[o.x,o.y,"n"];save();choose(o)}}
-let big=0;$("bAmp").onclick=()=>{big=!big;svg.setAttribute("width",big?3200:1600);$("bAmp").classList.toggle("on",big)};
-$("bLbl").onclick=()=>{svg.classList.toggle("nolbl");$("bLbl").classList.toggle("on")};
-$("bRs").onclick=()=>{try{localStorage.removeItem(KEY)}catch(e){}location.reload()};
-$("bCp").onclick=()=>{const out=all.map(o=>`Ponto ${o.n}${o.ph?" (foto "+o.ph+")":" (extra)"} (${o.k=="n"?"NOVO":"AJUSTAR"}): [${o.x},${o.y}]${nt[o.id]?" — "+nt[o.id].replace(/\n/g," "):""}`).join("\n");
- $("out").style.display="block";const t=$("ta");t.value=out;t.focus();t.select();let ok=false;
- try{ok=document.execCommand("copy")}catch(e){}
- $("msg").textContent=ok?"Copiado! Cole na conversa.":"Toque no texto, selecione tudo e copie, depois cole na conversa."};
+const $=id=>document.getElementById(id),NS="http://www.w3.org/2000/svg",KEY="ep-pos-v2";
+const DEF=[[13,486,834,"a",1],[14,620,912,"n",2],[12,1048,1222,"a",3],[7,1448,1314,"a",4],[11,1544,1572,"a",5],[8,2204,784,"n",6],[9,2214,1282,"n",7],[10,2216,1568,"n",8],[3,2452,776,"a",9],[6,2638,782,"n",10],[5,2852,780,"n",11],[2,2938,544,"a",12],[1,2974,384,"a",13],[4,3052,790,"a",14]];
+let M=DEF.map(d=>({id:"f"+d[0],ph:d[0],x:d[1],y:d[2],k:d[3],n:d[4]}));
+for(let j=1;j<=4;j++)M.push({id:"x"+j,ph:0,x:120,y:140+j*120,k:"n",n:14+j,un:1});
+let st={},nt={},added=[];
+function rd(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}}
+function wr(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+st=rd(KEY,{});nt=rd(KEY+"-n",{});added=rd(KEY+"-add",[]);
+added.forEach(a=>M.push(a));
+M.forEach(o=>{const s=st[o.id];if(s){o.x=s[0];o.y=s[1];if(s[2])o.k=s[2];if(s[3])o.n=s[3];o.un=0}});
+M.forEach(o=>{if(o.x<200&&!o.ph&&!st[o.id])o.un=1});
+function save(){M.forEach(o=>{st[o.id]=[o.x,o.y,o.k,o.n]});wr(KEY,st);wr(KEY+"-add",M.filter(o=>o.id[0]=="u").map(o=>({id:o.id,ph:0,x:o.x,y:o.y,k:o.k,n:o.n})))}
+const svg=$("s"),vp=$("vp"),stage=$("stage");
+let V={k:.2,tx:0,ty:0},mode="v",sel=null;
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p&&p.appendChild(e);return e};
+function apply(){vp.setAttribute("transform",`translate(${V.tx},${V.ty}) scale(${V.k})`);M.forEach(o=>{if(o.g)o.g.setAttribute("transform",`translate(${o.x},${o.y}) scale(${1/V.k})`)})}
+function fitK(){const r=stage.getBoundingClientRect();return Math.min(r.width/3200,r.height/1670)}
+function fit(){const r=stage.getBoundingClientRect();V.k=fitK();V.tx=(r.width-3200*V.k)/2;V.ty=(r.height-1670*V.k)/2;apply()}
+function clamp(){const r=stage.getBoundingClientRect(),f=fitK();V.k=Math.max(f*.9,Math.min(V.k,2.2));const w=3200*V.k,h=1670*V.k;
+ V.tx=w<r.width?(r.width-w)/2:Math.min(60,Math.max(r.width-w-60,V.tx));V.ty=h<r.height?(r.height-h)/2:Math.min(60,Math.max(r.height-h-60,V.ty))}
+function zoomAt(px,py,nk){const o=V.k;V.k=nk;V.tx=px-(px-V.tx)*nk/o;V.ty=py-(py-V.ty)*nk/o;clamp();apply()}
+let anim=0;
+function flyTo(x,y,k){cancelAnimationFrame(anim);const r=stage.getBoundingClientRect(),a={...V},b={k,tx:r.width/2-x*k,ty:r.height/2-y*k};let t=0;
+ const f=()=>{t+=.08;const e=t>=1?1:1-Math.pow(1-t,3);V.k=a.k+(b.k-a.k)*e;V.tx=a.tx+(b.tx-a.tx)*e;V.ty=a.ty+(b.ty-a.ty)*e;apply();if(t<1)anim=requestAnimationFrame(f);else{clamp();apply()}};f()}
+function draw(o){if(o.g)o.g.remove();if(o.un&&mode=="v"){o.g=null;return}
+ const g=el("g",{class:"m"},$("mk"));o.g=g;const c=o.k=="n"?"#1D9E75":"#F59E0B",on=o.id==sel;
+ el("circle",{r:on?22:17,fill:on?c:"#fff","fill-opacity":on?.95:.85,stroke:c,"stroke-width":on?5:4},g);
+ const t=el("text",{y:6,"font-size":o.n>9?15:17,"text-anchor":"middle",fill:on&&o.k=="n"?"#fff":"#111"},g);t.textContent=o.n;
+ g.dataset.id=o.id}
+function drawAll(){$("mk").innerHTML="";M.forEach(draw);apply();chips()}
+function chips(){const c=$("chips");c.innerHTML="";[...M].sort((a,b)=>a.n-b.n).forEach(o=>{const b=document.createElement("button");b.className="chip "+o.k+(o.id==sel?" sel":"")+(o.un?" un":"");b.textContent=o.n;b.onclick=()=>pick(o.id,true);c.appendChild(b);if(o.id==sel)setTimeout(()=>b.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"}),0)})}
+function pick(id,fly){sel=id;const o=M.find(a=>a.id==id);document.body.classList.add("sel");drawAll();panel(o);
+ setTimeout(()=>{if(fly&&!(o.un&&mode=="v")){const r=stage.getBoundingClientRect();flyTo(o.x,o.y,Math.max(r.width/900,fitK()*2.5))}},60)}
+function close(){sel=null;document.body.classList.remove("sel");drawAll()}
+function panel(o){const p=$("pin");const tipo=o.k=="n"?"PONTO NOVO":"AJUSTAR POSIÇÃO";
+ p.innerHTML=`<h3>Ponto ${o.n} · <span style="color:${o.k=="n"?"#1D9E75":"#B7770A"}">${tipo}</span> <button id="cl" style="float:right;padding:2px 10px">✕</button></h3>`+
+ (o.ph?`<img id="photo" src="thumbs/t${String(o.ph).padStart(2,"0")}.jpg">`:`<div class="nophoto">Sem foto</div>`)+
+ `<div class="ed" style="margin:6px 0"><button id="ba" class="${o.k=="a"?"on":""}">Ajustar (já existe)</button> <button id="bn" class="${o.k=="n"?"on":""}">Novo (falta)</button> `+(o.id[0]=="u"||!o.ph?`<button id="bd" style="color:#b00">Excluir</button>`:"")+`</div>`+
+ `<textarea id="nt" rows="2" placeholder="Observação (ex.: subir 20 cm, ao lado da janela)"></textarea><a id="wa" target="_blank" rel="noopener">Enviar observação por WhatsApp</a>`;
+ $("nt").value=nt[o.id]||"";const upd=()=>{const t=`Projeto elétrico — Ponto ${o.n}${o.ph?" (foto "+o.ph+")":""}, ${o.k=="n"?"ponto NOVO":"AJUSTAR posição"}`+(nt[o.id]?`\nObservação: ${nt[o.id]}`:"")+`\n(anexe a foto)`;$("wa").href="https://wa.me/?text="+encodeURIComponent(t)};upd();
+ $("nt").oninput=e=>{nt[o.id]=e.target.value;wr(KEY+"-n",nt);upd()};
+ $("cl").onclick=close;
+ if($("photo"))$("photo").onclick=function(){$("big").firstChild.src=this.src;$("big").style.display="block"};
+ $("ba").onclick=()=>{o.k="a";save();drawAll();panel(o)};$("bn").onclick=()=>{o.k="n";save();drawAll();panel(o)};
+ if($("bd"))$("bd").onclick=()=>{M.splice(M.indexOf(o),1);delete st[o.id];wr(KEY,st);save();close()}}
+$("big").onclick=()=>$("big").style.display="none";
+// gestures
+const P=new Map();let gs=null,tapT=0;
+function sp(e){const r=stage.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+stage.addEventListener("pointerdown",e=>{if(e.target.closest("#zb"))return;stage.setPointerCapture(e.pointerId);P.set(e.pointerId,{...sp(e),sx:e.clientX,sy:e.clientY,t:e.target.closest(".m")});cancelAnimationFrame(anim);
+ if(P.size==2){const [a,b]=[...P.values()];gs={d:Math.hypot(a.x-b.x,a.y-b.y),k:V.k,cx:(a.x+b.x)/2,cy:(a.y+b.y)/2,tx:V.tx,ty:V.ty,pinch:1}}
+ else{const p=P.get(e.pointerId);gs={tx:V.tx,ty:V.ty,x:p.x,y:p.y,drag:mode=="e"&&p.t?M.find(o=>o.id==p.t.dataset.id):null,moved:0}}});
+stage.addEventListener("pointermove",e=>{const p=P.get(e.pointerId);if(!p)return;const c=sp(e);p.x=c.x;p.y=c.y;
+ if(gs&&gs.pinch&&P.size>=2){const [a,b]=[...P.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),nk=gs.k*d/gs.d;const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+  const k0=V.k;V.k=nk;const sx=(gs.cx-gs.tx)/gs.k,sy=(gs.cy-gs.ty)/gs.k;V.tx=mx-sx*nk;V.ty=my-sy*nk;clamp();apply();return}
+ if(gs&&!gs.pinch){const dx=c.x-gs.x,dy=c.y-gs.y;gs.moved=Math.max(gs.moved,Math.hypot(e.clientX-p.sx,e.clientY-p.sy));
+  if(gs.drag&&gs.moved>6){const o=gs.drag;o.x=Math.round((c.x-V.tx)/V.k);o.y=Math.round((c.y-V.ty)/V.k);o.un=0;o.g.setAttribute("transform",`translate(${o.x},${o.y}) scale(${1/V.k})`)}
+  else if(!gs.drag&&gs.moved>6){V.tx=gs.tx+dx;V.ty=gs.ty+dy;clamp();apply()}}});
+function up(e){const p=P.get(e.pointerId);P.delete(e.pointerId);if(!gs)return;
+ if(!gs.pinch&&p&&gs.moved<=6&&p.t){pick(p.t.dataset.id,mode=="v")}
+ else if(!gs.pinch&&gs.drag&&gs.moved>6){save();chips();if(sel==gs.drag.id)panel(gs.drag)}
+ if(P.size==0)gs=null;else if(P.size==1){const q=[...P.values()][0];gs={tx:V.tx,ty:V.ty,x:q.x,y:q.y,drag:null,moved:99}}}
+stage.addEventListener("pointerup",up);stage.addEventListener("pointercancel",up);
+stage.addEventListener("wheel",e=>{e.preventDefault();const c=sp(e);zoomAt(c.x,c.y,V.k*(e.deltaY<0?1.2:1/1.2))},{passive:false});
+$("zi").onclick=()=>{const r=stage.getBoundingClientRect();zoomAt(r.width/2,r.height/2,V.k*1.5)};
+$("zo").onclick=()=>{const r=stage.getBoundingClientRect();zoomAt(r.width/2,r.height/2,V.k/1.5)};
+$("zf").onclick=()=>{fit()};
+$("cEl").onchange=e=>$("el").style.display=e.target.checked?"":"none";
+function setMode(m){mode=m;document.body.classList.toggle("edit",m=="e");$("tV").classList.toggle("on",m=="v");$("tE").classList.toggle("on",m=="e");drawAll();if(sel)panel(M.find(o=>o.id==sel));setTimeout(fit,0)}
+$("tV").onclick=()=>setMode("v");$("tE").onclick=()=>setMode("e");
+$("bAdd").onclick=()=>{const r=stage.getBoundingClientRect();const n=Math.max(0,...M.map(o=>o.n))+1;const o={id:"u"+Date.now(),ph:0,k:"n",n,x:Math.round((r.width/2-V.tx)/V.k),y:Math.round((r.height/2-V.ty)/V.k)};M.push(o);save();pick(o.id,false)};
+$("bRen").onclick=()=>{[...M].filter(o=>!o.un).sort((a,b)=>a.x-b.x).forEach((o,i)=>o.n=i+1);let n=M.filter(o=>!o.un).length;M.filter(o=>o.un).forEach(o=>o.n=++n);save();drawAll();if(sel)panel(M.find(o=>o.id==sel))};
+$("bCp").onclick=()=>{const out=[...M].sort((a,b)=>a.n-b.n).map(o=>`Ponto ${o.n}${o.ph?" (foto "+o.ph+")":" (extra)"} ${o.k=="n"?"NOVO":"AJUSTAR"}: [${o.x},${o.y}]${o.un?" (não posicionado)":""}${nt[o.id]?" — "+nt[o.id].replace(/\n/g," "):""}`).join("\n");
+ const t=$("out");t.style.display="block";t.value=out;t.focus();t.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}$("msg").textContent=ok?"Copiado! Cole na conversa.":"Selecione o texto, copie e cole na conversa."};
+$("bRs").onclick=()=>{try{localStorage.removeItem(KEY);localStorage.removeItem(KEY+"-n");localStorage.removeItem(KEY+"-add")}catch(e){}location.reload()};
+addEventListener("resize",()=>{clamp();apply()});
+drawAll();setTimeout(fit,50);
 </script></body></html>
