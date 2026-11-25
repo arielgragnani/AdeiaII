@@ -27,9 +27,12 @@ svg.nolbl .lbl{display:none}svg.nolet .let{display:none}
 .notes{margin-top:14px;font-size:14px}.notes h2{font-size:15px;font-weight:500;margin:0 0 4px}.notes ul{margin:0;padding-left:20px}.notes li{margin:3px 0}
 </style>
 <style>body{padding:0!important;overflow:hidden}h1,p.sub,.bar,textarea,.legend,.notes,#msg{display:none!important}
-.scroll{border:0!important;border-radius:0!important;max-height:none!important;height:100dvh;overflow:auto;-webkit-overflow-scrolling:touch}
-svg{width:170%!important;height:auto}.node{pointer-events:none!important}</style>
-<script>addEventListener("load",()=>{const s=document.getElementById("scroll");s.scrollLeft=(s.scrollWidth-s.clientWidth)/2;s.scrollTop=(s.scrollHeight-s.clientHeight)/2})</script>
+.scroll{border:0!important;border-radius:0!important;max-height:none!important;height:100vh;overflow:hidden;touch-action:none}
+svg{width:150%!important;height:auto;max-width:none}.node{pointer-events:none!important}</style>
+<script>addEventListener("load",()=>{const s=document.getElementById("scroll");s.scrollLeft=(s.scrollWidth-s.clientWidth)/2;s.scrollTop=(s.scrollHeight-s.clientHeight)/2;
+let d=null;s.addEventListener("pointerdown",e=>{d={x:e.clientX,y:e.clientY,l:s.scrollLeft,t:s.scrollTop};s.setPointerCapture(e.pointerId)});
+s.addEventListener("pointermove",e=>{if(!d)return;s.scrollLeft=d.l-(e.clientX-d.x);s.scrollTop=d.t-(e.clientY-d.y)});
+const u=()=>d=null;s.addEventListener("pointerup",u);s.addEventListener("pointercancel",u)})</script>
 </head>
 <body>
 <h1>Planta de eletrodutos do palco (som e energia)</h1>
