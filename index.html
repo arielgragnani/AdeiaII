@@ -12,7 +12,7 @@ button{font:inherit;font-size:13px;padding:6px 10px;border:1px solid #bbb;backgr
 button.on{background:#222;color:#fff;border-color:#222}
 #chips{display:flex;gap:4px;padding:4px 6px;background:#fff;border-bottom:1px solid #eee;flex:none}
 .chip{flex:1 1 0;min-width:0;height:34px;border-radius:17px;border:3px solid #F59E0B;background:#fff;font-weight:700;font-size:14px;padding:0}.chip.pl{flex:2.2 1 0}
-.chip.n{border-color:#1D9E75}.chip.sel{background:#F59E0B;color:#111}.chip.n.sel{background:#1D9E75;color:#fff}.chip.un{opacity:.35;border-style:dashed}.chip.pl{border-color:#378ADD}.chip.pl.sel{background:#378ADD;color:#fff}
+.chip.n{border-color:#1D9E75}.chip.sel{background:#F59E0B;color:#111}.chip.n.sel{background:#1D9E75;color:#fff}.chip.un{opacity:.7;border-style:dashed}.chip.pl{border-color:#378ADD}.chip.pl.sel{background:#378ADD;color:#fff}
 #legend{display:flex;gap:14px;align-items:center;padding:4px 10px;font-size:12px;background:#fff;border-bottom:1px solid #ddd;flex:none;flex-wrap:wrap}
 .dot{display:inline-block;width:14px;height:14px;border-radius:7px;border:3px solid;vertical-align:-3px;margin-right:4px}
 #tools{display:none;padding:6px 8px;background:#fffbe8;border-bottom:1px solid #e8e0b0;flex:none;flex-wrap:wrap;gap:6px}
@@ -42,10 +42,12 @@ textarea{width:100%;font:14px system-ui;margin-top:6px;flex:none;height:56px;use
 <div id="panel"><div class="in" id="pin"></div></div></div>
 </div>
 <script>
-const $=id=>document.getElementById(id),NS="http://www.w3.org/2000/svg",KEY="ep-pos-v2";
-const DEF=[[13,486,834,"a",1],[14,620,912,"n",2],[12,1048,1222,"a",3],[7,1448,1314,"a",4],[11,1544,1572,"a",5],[8,2204,784,"n",6],[9,2214,1282,"n",7],[10,2216,1568,"n",8],[3,2452,776,"a",9],[6,2638,782,"n",10],[5,2852,780,"n",11],[2,2938,544,"a",12],[1,2974,384,"a",13],[4,3052,790,"a",14]];
+const $=id=>document.getElementById(id),NS="http://www.w3.org/2000/svg",KEY="ep-pos-v3";
+const DEF=[[13,486,834,"a",1],[14,620,912,"n",2],[12,1048,1222,"a",3],[7,1448,1314,"a",4],[11,1544,1572,"a",5],[8,2204,784,"n",6],[9,2214,1282,"n",7],[10,2216,1568,"a",8],[3,2452,776,"a",9],[6,2638,782,"n",10],[5,2852,780,"n",11],[2,2938,544,"a",12],[1,2974,384,"a",13],[4,3052,790,"n",14]];
 let M=DEF.map(d=>({id:"f"+d[0],ph:d[0],x:d[1],y:d[2],k:d[3],n:d[4]}));
-for(let j=1;j<=4;j++)M.push({id:"x"+j,ph:0,x:120,y:140+j*120,k:"n",n:14+j,un:1});
+[["a"],["a"],["n"],["n"]].forEach((t,j)=>M.push({id:"x"+(j+1),ph:0,x:120,y:140+j*120,k:t[0],n:15+j,un:1}));
+const DN={f13:"Ajustar a posição da arandela no meio da coluna.",f14:"Adicionar arandela.",f12:"Ajustar a posição da arandela.",f7:"Ajustar a posição da arandela simetricamente.",f11:"Ajustar a posição da arandela.",f8:"Adicionar arandela à direita da porta e centralizar a arandela à esquerda da porta.",f9:"Adicionar arandela à esquerda da primeira janela e um ponto à direita da segunda janela.",f10:"Desconsiderar a arandela do meio.",f3:"Ajustar a posição das arandelas.",f6:"Adicionar arandelas ao lado da janela.",f5:"Adicionar arandelas entre as portas.",f2:"Ajustar a posição da arandela.",f1:"Ajustar a posição da arandela.",f4:"Adicionar ponto novo.",x1:"Ajustar a posição da luminária pendente.",x2:"Ajustar a posição da luminária pendente.",x3:"Adicionar luminária pendente.",x4:"Ponto elétrico no teto faltando."};
+const note=o=>nt[o.id]!==undefined?nt[o.id]:(DN[o.id]||"");
 let st={},nt={},added=[];
 function rd(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}}
 function wr(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
@@ -66,7 +68,7 @@ function zoomAt(px,py,nk){const o=V.k;V.k=nk;V.tx=px-(px-V.tx)*nk/o;V.ty=py-(py-
 let anim=0;
 function flyTo(x,y,k){cancelAnimationFrame(anim);const r=S(),a={...V},b={k,tx:r.width/2-x*k,ty:r.height/2-y*k};let t=0;
  const f=()=>{t+=.08;const e=t>=1?1:1-Math.pow(1-t,3);V.k=a.k+(b.k-a.k)*e;V.tx=a.tx+(b.tx-a.tx)*e;V.ty=a.ty+(b.ty-a.ty)*e;apply();if(t<1)anim=requestAnimationFrame(f);else{clamp();apply()}};f()}
-function draw(o){if(o.g)o.g.remove();if(o.un&&o.id!=sel){o.g=null;return}
+function draw(o){if(o.g)o.g.remove();if(o.un){o.g=null;return}
  const g=el("g",{class:"m"},$("mk"));o.g=g;const c=o.k=="n"?"#1D9E75":"#F59E0B",on=o.id==sel;
  el("circle",{r:on?22:17,fill:on?c:"#fff","fill-opacity":on?.95:.85,stroke:c,"stroke-width":on?5:4},g);
  const t=el("text",{y:6,"font-size":o.n>9?15:17,"text-anchor":"middle",fill:on&&o.k=="n"?"#fff":"#111"},g);t.textContent=o.n;
@@ -75,7 +77,7 @@ function drawAll(){$("mk").innerHTML="";M.forEach(draw);apply();chips()}
 function chips(){const c=$("chips");c.innerHTML="";[...M].sort((a,b)=>a.n-b.n).forEach(o=>{const b=document.createElement("button");b.className="chip "+o.k+(o.id==sel?" sel":"")+(o.un?" un":"");b.textContent=o.n;b.onclick=()=>pick(o.id,true);c.appendChild(b);if(o.id==sel)setTimeout(()=>b.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"}),0)});
  const pb=document.createElement("button");pb.className="chip pl"+(sel=="palco"?" sel":"");pb.textContent="Palco";pb.style.padding="0 14px";pb.onclick=()=>pick("palco");c.appendChild(pb);if(sel=="palco")setTimeout(()=>pb.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"}),0);
  const ab=document.createElement("button");ab.className="chip";ab.textContent="＋";ab.style.cssText="border-color:#888;font-size:20px";ab.onclick=addPoint;c.appendChild(ab)}
-function pick(id,fly){if(id=="palco"){sel="palco";moveId=null;document.body.classList.add("sel","palco");drawAll();palPanel();return}document.body.classList.remove("palco");sel=id;const o=M.find(a=>a.id==id);if(o.un){const r=S();o.x=Math.round((r.width/2-V.tx)/V.k);o.y=Math.round((r.height/2-V.ty)/V.k);o.un=0;moveId=o.id;fly=false;save()}else if(moveId!=id)moveId=null;document.body.classList.add("sel");drawAll();panel(o);
+function pick(id,fly){if(id=="palco"){sel="palco";moveId=null;document.body.classList.add("sel","palco");drawAll();palPanel();return}document.body.classList.remove("palco");sel=id;const o=M.find(a=>a.id==id);if(o.un){fly=false}else if(moveId!=id)moveId=null;document.body.classList.add("sel");drawAll();panel(o);
  setTimeout(()=>{if(fly){const r=S();flyTo(o.x,o.y,Math.max(r.width/900,fitK()*2.5))}},60)}
 function close(){sel=null;moveId=null;document.body.classList.remove("sel","palco");drawAll();setTimeout(()=>{fit()},50)}
 function palPanel(){const p=$("pin");p.innerHTML=`<div style="display:flex;gap:6px;align-items:stretch"><textarea id="nt" style="flex:1;margin:0;height:52px" placeholder="Observação sobre o palco"></textarea><a id="wa" target="_blank" rel="noopener" style="margin:0;display:flex;align-items:center;padding:0 12px">Enviar por WhatsApp</a><button id="cl" style="padding:2px 12px">✕</button></div>`;p.style.height="auto";
@@ -83,10 +85,11 @@ function palPanel(){const p=$("pin");p.innerHTML=`<div style="display:flex;gap:6
 function panel(o){const p=$("pin");p.style.height="";const tipo=o.k=="n"?"PONTO NOVO":"AJUSTAR POSIÇÃO";
  p.innerHTML=`<h3 style="margin:0 0 4px;flex:none">Ponto ${o.n} · <span style="color:${o.k=="n"?"#1D9E75":"#B7770A"}">${tipo}</span> <button id="cl" style="float:right;padding:2px 10px">✕</button></h3>`+
  (o.ph?`<img id="photo" src="thumbs/t${String(o.ph).padStart(2,"0")}.jpg">`:`<div class="nophoto">Sem foto</div>`)+
- `<textarea id="nt" placeholder="Observação (ex.: subir 20 cm)"></textarea><a id="wa" target="_blank" rel="noopener" style="flex:none">Enviar por WhatsApp</a>`;
- $("nt").value=nt[o.id]||"";const upd=()=>{const t=`Projeto elétrico — Ponto ${o.n}${o.ph?" (foto "+o.ph+")":""}, ${o.k=="n"?"ponto NOVO":"AJUSTAR posição"}`+(nt[o.id]?`\nObservação: ${nt[o.id]}`:"")+`\n(anexe a foto)`;$("wa").href="https://wa.me/447525005686?text="+encodeURIComponent(t)};upd();
+ (o.un?`<div style="flex:none;background:#fff3cd;border-radius:6px;padding:6px 8px;font-size:13px;margin-bottom:4px">Posição na planta ainda não definida. Dê zoom até o local e toque em <b>Colocar aqui</b>. <button id="pl" style="margin-top:4px">Colocar aqui</button></div>`:"")+`<textarea id="nt" placeholder="Observação (ex.: subir 20 cm)"></textarea><a id="wa" target="_blank" rel="noopener" style="flex:none">Enviar por WhatsApp</a>`;
+ $("nt").value=note(o);const upd=()=>{const t=`Projeto elétrico — Ponto ${o.n}${o.ph?" (foto "+o.ph+")":""}, ${o.k=="n"?"ponto NOVO":"AJUSTAR posição"}`+(note(o)?`\nObservação: ${note(o)}`:"")+`\n(anexe a foto)`;$("wa").href="https://wa.me/447525005686?text="+encodeURIComponent(t)};upd();
  $("nt").oninput=e=>{nt[o.id]=e.target.value;wr(KEY+"-n",nt);upd()};
  $("cl").onclick=close;
+ if($("pl"))$("pl").onclick=()=>{const r=S();o.x=Math.round((r.width/2-V.tx)/V.k);o.y=Math.round((r.height/2-V.ty)/V.k);o.un=0;moveId=o.id;save();drawAll();panel(o)};
  if($("photo"))$("photo").onclick=function(){$("big").firstChild.src=this.src;$("big").style.display="block"};
  }
 $("big").onclick=()=>$("big").style.display="none";
