@@ -54,7 +54,8 @@ const $=id=>document.getElementById(id),NS="http://www.w3.org/2000/svg",KEY="ep-
 const DEF=[[13,486,834,"a",1],[14,620,912,"n",2],[12,1048,1222,"a",3],[7,1448,1314,"a",4],[11,1544,1572,"a",5],[8,2204,784,"n",6],[9,2214,1282,"a",7],[10,2216,1568,"n",8],[3,2452,776,"a",9],[6,2638,782,"n",10],[5,2852,780,"n",11],[2,2938,544,"a",12],[1,2974,384,"a",13],[4,3052,790,"a",14]];
 let M=DEF.map(d=>({id:"f"+d[0],ph:d[0],x:d[1],y:d[2],k:d[3],n:d[4]}));
 [["a",877,338],["a",1160,341],["n",1739,324],["n",2315,549]].forEach((t,j)=>M.push({id:"x"+(j+1),ph:0,x:t[1],y:t[2],k:t[0],n:15+j}));
-const DN={f13:"Ajustar a posição da arandela no meio da coluna.",f14:"Adicionar arandela.",f12:"Ajustar a posição da arandela.",f7:"Ajustar a posição da arandela simetricamente.",f11:"Ajustar a posição da arandela.",f8:"Adicionar arandela à direita da porta e centralizar a arandela à esquerda da porta.",f9:"Desconsiderar a arandela do meio (marcada com X).",f10:"Adicionar arandela.",f3:"Ajustar a posição das arandelas.",f6:"Adicionar arandela ao lado da janela.",f5:"Adicionar arandelas entre as portas.",f2:"Ajustar a posição da arandela.",f1:"Ajustar a posição da arandela.",f4:"Centralizar arandelas.",x1:"Ajustar a posição da luminária pendente.",x2:"Ajustar a posição da luminária pendente.",x3:"Ponto elétrico no teto faltando.",x4:"Adicionar luminária pendente."};
+[[15,300,200],[16,300,320],[17,300,440]].forEach((t,j)=>M.push({id:"f"+t[0],ph:t[0],x:t[1],y:t[2],k:"a",n:19+j,un:1}));
+const DN={f13:"Ajustar a posição da arandela no meio da coluna.",f14:"Adicionar arandela.",f12:"Ajustar a posição da arandela.",f7:"Ajustar a posição da arandela simetricamente.",f11:"Ajustar a posição da arandela.",f8:"Adicionar arandela à direita da porta e centralizar a arandela à esquerda da porta.",f9:"Desconsiderar a arandela do meio (marcada com X).",f10:"Adicionar arandela.",f3:"Ajustar a posição das arandelas.",f6:"Adicionar arandela ao lado da janela.",f5:"Adicionar arandelas entre as portas.",f2:"Ajustar a posição da arandela.",f1:"Ajustar a posição da arandela.",f4:"Centralizar arandelas.",x1:"Ajustar a posição da luminária pendente.",x2:"Ajustar a posição da luminária pendente.",x3:"Ponto elétrico no teto faltando.",x4:"Adicionar luminária pendente.",f15:"Texto a definir.",f16:"Texto a definir.",f17:"Texto a definir."};
 const PH={};const note=o=>nt[o.id]!==undefined?nt[o.id]:(DN[o.id]||"");
 let st={},nt={},added=[];
 function rd(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}}
@@ -63,7 +64,7 @@ st=rd(KEY,{});nt=rd(KEY+"-n",{});added=rd(KEY+"-add",[]);
 added.forEach(a=>M.push(a));
 M.forEach(o=>{const s=st[o.id];if(s){o.x=s[0];o.y=s[1];if(s[2])o.k=s[2];if(s[3])o.n=s[3];o.un=0}});
 M.forEach(o=>{if(o.x<200&&!o.ph&&!st[o.id])o.un=1});
-function save(){M.forEach(o=>{st[o.id]=[o.x,o.y,o.k,o.n]});wr(KEY,st);wr(KEY+"-add",M.filter(o=>o.id[0]=="u").map(o=>({id:o.id,ph:0,x:o.x,y:o.y,k:o.k,n:o.n})))}
+function save(){M.forEach(o=>{if(!o.un)st[o.id]=[o.x,o.y,o.k,o.n]});wr(KEY,st);wr(KEY+"-add",M.filter(o=>o.id[0]=="u").map(o=>({id:o.id,ph:0,x:o.x,y:o.y,k:o.k,n:o.n})))}
 const S=()=>({width:stage.offsetWidth,height:stage.offsetHeight});const svg=$("s"),vp=$("vp"),stage=$("stage");
 let V={k:.2,tx:0,ty:0},mode="v",sel=null,moveId=null;
 const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p&&p.appendChild(e);return e};
