@@ -35,11 +35,19 @@ textarea{width:100%;font:14px system-ui;margin-top:6px;flex:none;height:56px;use
 
 #out{display:none;width:100%;user-select:text;-webkit-user-select:text}
 .m{cursor:pointer}.m text{font-weight:700;pointer-events:none}
-#slw{position:absolute;left:6px;bottom:6px;z-index:5;display:flex;gap:6px;align-items:center}#slb{width:38px;height:38px;padding:0;opacity:.5;border-radius:19px;font-size:18px}#sl{display:none;width:min(320px,55vw);height:38px;accent-color:#378ADD;margin:0}#slw.open #sl{display:block}#slw.open #slb{opacity:.9}</style></head><body>
+#slw{position:absolute;left:6px;bottom:6px;z-index:5;display:flex;gap:6px;align-items:center}#slb{width:38px;height:38px;padding:0;opacity:.5;border-radius:19px;font-size:18px}#sl{display:none;width:min(320px,55vw);height:38px;accent-color:#378ADD;margin:0}#slw.open #sl{display:block}#slw.open #slb{opacity:.9}#pend{display:none;flex:1;overflow:auto;background:#f4f2ee;padding:8px 10px;-webkit-overflow-scrolling:touch}
+body.pend #stage,body.pend #panel{display:none}body.pend #pend{display:block}
+.pi{background:#fff;border:1px solid #ddd;border-radius:10px;padding:8px 10px;margin-bottom:8px}
+.pi .r{display:flex;gap:10px;align-items:center}.pi input[type=checkbox]{width:24px;height:24px;flex:none}
+.pi .t{flex:1;font-weight:700;font-size:15px}.pi.dn .t{text-decoration:line-through;color:#888;font-weight:500}
+.pi .d{font-size:13px;color:#666}.pi textarea{height:48px;margin-top:6px}
+.pi a.w{display:block;margin-top:6px;padding:8px;border-radius:8px;background:#25D366;color:#fff;text-align:center;font-weight:600;text-decoration:none;font-size:14px}
+.chip.pd{border-color:#7C5CBF;flex:3.6 1 0;font-size:12px}.chip.pd.sel{background:#7C5CBF;color:#fff}
+</style></head><body>
 <div id="app">
 <div id="chips"></div>
 <div id="big"><img></div><div id="main"><div id="stage"><div id="slw"><button id="slb">◐</button><input type="range" id="sl" min="0" max="100" value="0"></div><iframe id="pal" src="palco/view.html" style="display:none;position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff;z-index:2"></iframe><svg id="s"><g id="vp"><image id="el" href="elec.jpg" width="3200" height="1670" opacity="0"/><image id="wl" href="walls.png" width="3200" height="1670"/><g id="mk"></g></g></svg></div>
-<div id="panel"><div class="in" id="pin"></div></div></div>
+<div id="pend"></div><div id="panel"><div class="in" id="pin"></div></div></div>
 </div>
 <script>
 const $=id=>document.getElementById(id),NS="http://www.w3.org/2000/svg",KEY="ep-pos-v5";
@@ -76,10 +84,11 @@ function draw(o){if(o.g)o.g.remove();if(o.un){o.g=null;return}
 function drawAll(){$("mk").innerHTML="";M.forEach(draw);apply();chips()}
 function chips(){const c=$("chips");c.innerHTML="";[...M].sort((a,b)=>a.n-b.n).forEach(o=>{const b=document.createElement("button");b.className="chip "+o.k+(o.id==sel?" sel":"")+(o.un?" un":"");b.textContent=o.n;b.onclick=()=>pick(o.id,true);c.appendChild(b);if(o.id==sel)setTimeout(()=>b.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"}),0)});
  const pb=document.createElement("button");pb.className="chip pl"+(sel=="palco"?" sel":"");pb.textContent="Palco";pb.style.padding="0 14px";pb.onclick=()=>pick("palco");c.appendChild(pb);if(sel=="palco")setTimeout(()=>pb.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"}),0);
+ const pd=document.createElement("button");pd.className="chip pd"+(sel=="pend"?" sel":"");pd.textContent="Pendências";pd.style.padding="0 4px";pd.onclick=()=>pick("pend");c.appendChild(pd);
  const ab=document.createElement("button");ab.className="chip";ab.textContent="＋";ab.style.cssText="border-color:#888;font-size:20px";ab.onclick=addPoint;c.appendChild(ab)}
-function pick(id,fly){if(id=="palco"){sel="palco";moveId=null;document.body.classList.add("sel","palco");drawAll();palPanel();return}document.body.classList.remove("palco");sel=id;const o=M.find(a=>a.id==id);if(o.un){fly=false}else if(moveId!=id)moveId=null;document.body.classList.add("sel");drawAll();panel(o);
+function pick(id,fly){document.body.classList.remove("pend");if(id=="pend"){sel="pend";moveId=null;document.body.classList.remove("sel","palco");document.body.classList.add("pend");drawAll();renderPend();return}if(id=="palco"){sel="palco";moveId=null;document.body.classList.add("sel","palco");drawAll();palPanel();return}document.body.classList.remove("palco");sel=id;const o=M.find(a=>a.id==id);if(o.un){fly=false}else if(moveId!=id)moveId=null;document.body.classList.add("sel");drawAll();panel(o);
  setTimeout(()=>{if(fly){const r=S();flyTo(o.x,o.y,Math.max(r.width/900,fitK()*2.5))}},60)}
-function close(){sel=null;moveId=null;document.body.classList.remove("sel","palco");drawAll();setTimeout(()=>{fit()},50)}
+function close(){sel=null;moveId=null;document.body.classList.remove("sel","palco","pend");drawAll();setTimeout(()=>{fit()},50)}
 function palPanel(){const p=$("pin");p.innerHTML=`<div style="display:flex;gap:6px;align-items:stretch"><textarea id="nt" style="flex:1;margin:0;height:52px" placeholder="Comentário sobre o palco"></textarea><a id="wa" target="_blank" rel="noopener" style="margin:0;display:flex;align-items:center;padding:0 12px">Comentar por WhatsApp</a><button id="cl" style="padding:2px 12px">✕</button></div>`;p.style.height="auto";
  $("nt").value=nt.palco||"";const upd=()=>{$("wa").href="https://wa.me/447525005686?text="+encodeURIComponent("Projeto elétrico — PALCO"+(nt.palco?"\nObservação: "+nt.palco:"")+"\n(anexe a foto)")};upd();$("nt").oninput=e=>{nt.palco=e.target.value;wr(KEY+"-n",nt);upd()};$("cl").onclick=close}
 function panel(o){const p=$("pin");p.style.height="";const hd=DN[o.id]||(o.k=="n"?"Ponto novo":"Ajustar posição"),col=o.k=="n"?"#1D9E75":"#B7770A",pic=PH[o.id]?PH[o.id].url:o.ph?`thumbs/t${String(o.ph).padStart(2,"0")}.jpg`:"";
@@ -95,6 +104,20 @@ function panel(o){const p=$("pin");p.style.height="";const hd=DN[o.id]||(o.k=="n
  if($("cp"))$("cp").onclick=()=>{const out=[...M].sort((a,b)=>a.n-b.n).map(q=>`Ponto ${q.n}${q.ph?" (foto "+q.ph+")":""} ${q.k=="n"?"NOVO":"AJUSTAR"}: [${q.x},${q.y}]${nt[q.id]?" — "+nt[q.id].replace(/\n/g," "):""}`).join("\n");const t=$("o2");t.style.display="block";t.value=out;t.focus();t.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}$("cp").textContent=ok?"Copiado! Cole na conversa":"Selecione o texto e copie"};
  if($("photo"))$("photo").onclick=function(){$("big").firstChild.src=this.src;$("big").style.display="block"};
  }
+const PD0=[{id:"p1",t:"Piso laminado nos quartos",d:"Definir modelo e cor."},{id:"p2",t:"Tanque da lavanderia",d:"Definir modelo."},{id:"p3",t:"Torneira da lavanderia",d:"Definir modelo."},{id:"p4",t:"Churrasqueira da área gourmet",d:"Definir modelo e local."},{id:"p5",t:"Chaminé",d:"Definir."}];
+let pd=rd(KEY+"-pd",{done:{},add:[],cm:{},del:{}}),pOpen=null;
+const pdSave=()=>wr(KEY+"-pd",pd);
+function renderPend(){const L=[...PD0,...pd.add].filter(x=>!pd.del[x.id]);const box=$("pend");box.innerHTML="";
+ const top=document.createElement("div");top.style.cssText="display:flex;gap:6px;margin-bottom:8px";top.innerHTML=`<input id="pn" placeholder="Nova pendência (ex.: cor da porta)" style="flex:1;font:15px system-ui;padding:8px;border:1px solid #bbb;border-radius:8px;user-select:text;-webkit-user-select:text"><button id="pa" style="padding:0 14px;font-size:18px">＋</button><button id="px" style="padding:0 12px">✕</button>`;box.appendChild(top);
+ $("px").onclick=close;$("pa").onclick=()=>{const v=$("pn").value.trim();if(!v)return;pd.add.push({id:"q"+Date.now(),t:v,d:""});pdSave();renderPend()};
+ [...L.filter(x=>!pd.done[x.id]),...L.filter(x=>pd.done[x.id])].forEach(x=>{const dn=!!pd.done[x.id],div=document.createElement("div");div.className="pi"+(dn?" dn":"");
+  div.innerHTML=`<div class="r"><input type="checkbox" ${dn?"checked":""}><div class="t">${esc(x.t)}</div><button class="o" style="padding:2px 10px">${pOpen==x.id?"▲":"▼"}</button></div>`+(x.d&&!dn?`<div class="d">${esc(x.d)}</div>`:"")+(pOpen==x.id?`<textarea placeholder="Comentário (opcional)">${esc(pd.cm[x.id]||"")}</textarea><a class="w" target="_blank" rel="noopener">Comentar por WhatsApp</a>`+(x.id[0]=="q"?`<button class="del" style="margin-top:6px;color:#b00">Excluir</button>`:""):"");
+  div.querySelector("input").onchange=e=>{pd.done[x.id]=e.target.checked;pdSave();renderPend()};
+  div.querySelector(".o").onclick=()=>{pOpen=pOpen==x.id?null:x.id;renderPend()};
+  const ta=div.querySelector("textarea");if(ta){const w=div.querySelector("a.w"),u=()=>{w.href="https://wa.me/447525005686?text="+encodeURIComponent("Projeto elétrico — Pendência: "+x.t+(x.d?" ("+x.d+")":"")+(pd.cm[x.id]?"\nComentário: "+pd.cm[x.id]:""))};u();ta.oninput=e=>{pd.cm[x.id]=e.target.value;pdSave();u()}}
+  const dl=div.querySelector(".del");if(dl)dl.onclick=()=>{pd.del[x.id]=1;pOpen=null;pdSave();renderPend()};
+  box.appendChild(div)})}
+function esc(t){return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 $("big").onclick=()=>$("big").style.display="none";
 // gestures
 const P=new Map();let gs=null,tapT=0;
